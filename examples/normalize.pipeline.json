@@ -1,0 +1,1 @@
+{"version":1,"steps":[{"op":"default","path":"/status","value":"new"},{"op":"ensureArray","path":"/tags"},{"op":"omit","path":"/temporary"}]}

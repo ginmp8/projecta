@@ -43,7 +43,7 @@ namespace Projecta.SystemTextJson
                     {
                         return new JValue(longValue);
                     }
-                    else if (element.TryGetDecimal(out decimal decimalValue))
+                    else if (element.TryGetDecimal(out decimal decimalValue) && (double)decimalValue == element.GetDouble())
                     {
                         return new JValue(decimalValue);
                     }
@@ -105,6 +105,7 @@ namespace Projecta.SystemTextJson
             }
             else if (node is JsonValue value)
             {
+                if (value.TryGetValue<JsonElement>(out var element)) return FromSystemTextJson(element);
                 if (value.TryGetValue(out bool boolValue))
                 {
                     return new JValue(boolValue);
@@ -142,7 +143,7 @@ namespace Projecta.SystemTextJson
 
         public static JsonDocument ToSystemTextJson(this JToken value)
         {
-            return JsonDocument.Parse(value.ToFlatString());
+            return JsonDocument.Parse(NativeJsonWriter.ToUtf8Bytes(value));
         }
 
         public static JsonNode? ToSystemTextJsonNode(this JToken value)
@@ -176,16 +177,8 @@ namespace Projecta.SystemTextJson
             case JTokenType.Undefined:
                 return JsonValue.Create(new JsonElement()); //this would create a node with JsonValueKind.Undefined, see https://github.com/mikhail-barg/jsonata.net.native/issues/38#issuecomment-2813936416 
             case JTokenType.Float:
-                try
-                {
-                    decimal decimalValue = (decimal)value;
-                    return JsonValue.Create(decimalValue);
-                }
-                catch (OverflowException)
-                {
-                    //throw new JsonataException("S0102", $"Number out of range: {value} ({ex.Message})");
-                    return JsonValue.Create((double)value);
-                }
+                return ((JValue)value).TryGetExactDecimal(out decimal exact)
+                    ? JsonValue.Create(exact) : JsonValue.Create((double)value);
             case JTokenType.Integer:
                 return JsonValue.Create((long)value);
             case JTokenType.String:

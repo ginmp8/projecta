@@ -1,39 +1,43 @@
 # Projecta
 
-**Standalone .NET 10 object projection with a source-owned JSONata engine.**
+**Standalone .NET 10 projection and document transformation.**
 
-Projecta incorporates and evolves the MIT-licensed `jsonata.net.native` engine supplied for this fork. It does **not** reference the `Jsonata.Net.Native` NuGet packages. It has no application, API, database service or product-specific dependency.
+Version **0.2.0**. Dynamic JSONata rules, heterogeneous object sources, typed destinations, bounded execution, optional data contracts, streaming records, document operations and restricted compiled projections.
 
-Version: **0.1.0**. This is a new package identity, not an upstream JSONata release. Package names have not been published or reserved on nuget.org.
+## Release qualification
 
-## Validation status
+The package-free solution has been built and exercised on Linux with .NET SDK **10.0.302** / runtime **10.0.10**. The exact execution counts, package-consumer checks and archive identity are recorded in [validation](docs/VALIDATION.md).
 
-The engine, System.Text.Json bridge and main projection package were built with .NET SDK 10.0.302 / runtime 10.0.10 on Linux. **110 package-free verification cases passed**; one case also executes a 200-object JSON differential corpus. The runnable sample and microbenchmarks executed.
-
-The Newtonsoft bridge passed **12 smoke cases against the SDK's Newtonsoft 13.0.3 DLL**, not a restored 13.0.4 NuGet graph. `Directory.Packages.props` declares Newtonsoft **13.0.4** and EF Core **10.0.12**. Those exact package restores and EF runtime tests were blocked by unavailable NuGet transport. EF source, tests and CI are included, but EF is **not runtime-validated in this delivery**. Retained upstream NUnit suites were not executed. See [validation details](docs/VALIDATION.md); do not interpret core success as full production readiness.
+This is a **source and package distribution with limited validation, not a production approval**. Exact EF Core/Newtonsoft/NUnit restores and relational-provider execution remain unverified in this environment. No Windows/macOS execution, complete JSONata conformance or Native AOT publish is claimed. Every optional integration is included as source; the package inventory identifies which binaries were actually produced.
 
 ## Packages
 
-| Project | Role | Dependencies |
+| Package | Responsibility | Extra NuGet dependencies |
 |---|---|---|
-| `Projecta.Core` | Full native JSONata parser, AST, evaluator, built-in functions, JSON DOM, bounded CLR reader | .NET 10 only |
-| `Projecta.SystemTextJson` | Native/System.Text.Json DOM bridge | Core; System.Text.Json from .NET 10 |
-| `Projecta` | JSON definitions, compiled plans, bounded LRU cache, typed targets and target registry | Core and SystemTextJson |
-| `Projecta.NewtonsoftJson` | Optional JObject/JArray/JValue sources and targets | Projecta; Newtonsoft.Json |
-| `Projecta.EntityFrameworkCore` | Optional tracked entity/proxy snapshots and explicit scalar updates | Projecta; EF Core 10 |
+| `Projecta.Core` | JSONata parser, AST, evaluator, native JSON DOM, CLR reader and budgets | None |
+| `Projecta.SystemTextJson` | JSON DOM adapters, bounded UTF-8 writer | None |
+| `Projecta` | Immutable plans, LRU cache, contexts, diagnostics, contracts, typed materialization | None |
+| `Projecta.Contracts` | Explicit structural JSON Schema profile | None |
+| `Projecta.Streaming` | Ordered batches and incremental JSONL | None |
+| `Projecta.Documents` | JSON Pointer, document patches, merge patches and pipelines | None |
+| `Projecta.Queryable` | Restricted scalar LINQ `Select` expression builder | None |
+| `Projecta.SourceGeneration` | Static mapper generator for .NET 10 compiler hosts | SDK compiler assemblies at build time |
+| `Projecta.Tooling` | Local CLI: validate, preview, JSONL, patch, pipeline, conformance and benchmark | None |
+| `Projecta.NewtonsoftJson` | Optional `JObject`/`JArray`/`JValue` adapters | Newtonsoft.Json |
+| `Projecta.EntityFrameworkCore` | Optional tracked-entity snapshots and explicitly permitted scalar updates | EF Core 10 |
 
-Every project inherits `net10.0` and C# 14 from `Directory.Build.props`. All NuGet versions are centralized in `Directory.Packages.props`. No ORM dependency enters the main package.
+"None" excludes other Projecta packages. All runtime projects target `net10.0` / C# 14. Versions are centralized in `Directory.Packages.props`; build policy is in `Directory.Build.props`. The core has no database, application, API, service or product-specific dependency.
 
 ## Quick start
 
-Reference `src/Projecta/Projecta.csproj` from a consuming application, or build local NuGet packages. This source ZIP does not bundle `.nupkg` files; generate local NuGet packages with `dotnet pack Projecta.slnx -c Release -o artifacts/packages` after a successful build.
+Reference `src/Projecta/Projecta.csproj`, or restore the corresponding package from your local package feed.
 
 ```csharp
 using Projecta.Mapping;
 
 var rule = ProjectionDefinition.Parse("""
 {
-  "id": "customer-v1",
+  "id": "customer-view",
   "version": 1,
   "fields": {
     "Id": "$string(id)",
@@ -42,152 +46,97 @@ var rule = ProjectionDefinition.Parse("""
   }
 }
 """);
-
 var projector = new ObjectProjector();
-var plan = projector.Compile(rule); // Compile once and reuse.
+var plan = projector.Compile(rule); // Compile once; reuse the immutable plan.
 var source = new { id = 123, fullName = "Ana", status = "ACTIVE" };
-CustomerView? result = projector.Project<CustomerView>(source, plan);
+CustomerView? value = projector.Project<CustomerView>(source, plan);
 
 public sealed record CustomerView(string Id, string Name, bool IsActive);
 ```
 
-`ProjectToToken()` returns the native JSON DOM; `Project<T>()` materializes a compatible CLR/JSON destination. DTO constructors, arrays, nullable values, enums and required properties use the .NET 10 System.Text.Json contract. Extra destination JSON members are rejected. Missing non-required destination members retain normal serializer defaults; mark members `required` when absence must fail.
+Choose exactly one of `fields` or `expression`. Values are **JSONata expressions**, not JSONPath. Field keys are literal: `"Address.City"` does not create a nested object. Use `{'Address':{'City':address.city}}` for nesting. Use explicit arrays, such as `[items.name]`, to stabilize zero/one/many cardinality. An undefined top-level result is rejected; JSON null is distinct from undefined.
 
-A CLR `string` is a scalar. To project a JSON document, parse it first with `JsonDocument.Parse`, `JsonNode.Parse`, a Newtonsoft parser, or `Projecta.Json.JToken.Parse`. The native parser retains its upstream permissive mode; pass `ParseSettings.GetStrict()` for strict input rules.
+A CLR `string` is a scalar. Parse JSON text with `JsonDocument.Parse`, `JsonNode.Parse` or a native parser before projecting. The native parser retains a permissive mode; select `ParseSettings.GetStrict()` where strict JSON is required.
 
-## JSON rule contract
-
-Choose exactly one of `fields` or `expression`. Each field is a **JSONata expression**, not a JSONPath string. Field names are literal: `"Address.City"` does not create nested objects. Build nesting in the expression:
-
-```json
-{
-  "id": "nested-v1",
-  "expression": "{'Name':customer.name,'Address':{'City':customer.city},'Total':$sum(items.price)}"
-}
-```
-
-Use JSONata conditions/default expressions explicitly, e.g. `$exists(city) ? city : 'unknown'`. A wholly undefined result is rejected rather than silently becoming null. For stable zero/one/many collection cardinality, use explicit array constructors such as `[items.name]`.
-
-A `CompiledProjection` is a snapshot: editing the original dictionary cannot change it. Compilation is cached by expression in a bounded LRU; evaluation limits are applied per call, not stored in shared query state.
-
-## Supported sources and targets
-
-- DTOs/POCOs, records, inherited public readable properties, dictionaries with string keys, arrays and `IEnumerable` values.
-- Native `Projecta.Json` nodes, System.Text.Json `JsonDocument`, `JsonElement` and `JsonNode`.
-- Newtonsoft `JObject`/`JArray`/`JValue` through the optional adapter, including nesting inside DTOs and collections.
-- Tracked EF Core entities/proxies through the optional EF adapter, including collections of entities.
-- Registered CLR destination types or concrete JSON destination shapes. Domain-specific factories can implement `IProjectionTargetMaterializer`.
-
-The generic reader excludes static properties, indexers and non-public getters; handles common scalars explicitly; supports `[JsonPropertyName]` and `[JsonIgnore]`; rejects cycles, queryables and unregistered runtime proxies. Reflection accessors are weakly cached per type and compiled where supported. The fallback is reflection, not a claim of general trimming/Native AOT compatibility.
-
-## Newtonsoft integration
+## Context and diagnostics
 
 ```csharp
-using Newtonsoft.Json.Linq;
-using Projecta.Mapping;
-using Projecta.NewtonsoftJson;
-
-var projector = new ObjectProjector(
-    sourceAdapters: new[] { new NewtonsoftSourceAdapter() },
-    targetMaterializers: new[] { new NewtonsoftTargetMaterializer() });
-
-JObject input = JObject.Parse("{\"name\":\"Ana\"}");
-var definition = new ProjectionDefinition { Expression = "{'Name':name}" };
-JObject? json = projector.Project<JObject>(input, definition);
-Person? dto = projector.Project<Person>(input, definition);
-```
-
-Token adapters do not serialize an entire CLR object or pass through JSON text. The main DTO materializer uses System.Text.Json attributes, not Newtonsoft-specific DTO attributes. Use an explicit custom materializer when a special construction/converter contract is required.
-
-## EF Core integration
-
-```csharp
-using Projecta.EntityFrameworkCore;
-using Projecta.Mapping;
-
-var adapter = new EfCoreSourceAdapter(dbContext, new EfCoreReadOptions
+var plan = projector.Compile(new ProjectionDefinition
 {
-    ScalarProperties = new HashSet<string> { "Id", "Name", "Status" }
+    Id = "invoice",
+    Expression = "{'Total':amount * $rate}"
 });
-var projector = new ObjectProjector(sourceAdapters: new[] { adapter });
-var dto = projector.Project<CustomerView>(trackedEntity, definition);
+var context = new ProjectionExecutionContext(
+    new Dictionary<string, object?> { ["rate"] = 1.05m });
+var result = projector.TryProject<InvoiceView>(new { amount = 100m }, plan, context);
+if (!result.Success)
+    foreach (var error in result.Diagnostics)
+        Console.WriteLine($"{error.Code}: {error.Phase}/{error.Field}");
+
+public sealed record InvoiceView(decimal Total);
 ```
 
-The adapter is **scoped to its DbContext**. It does not attach entities, execute `Load`, call `SaveChanges`, or translate JSONata into SQL. Lazy loading and automatic change detection are disabled for each snapshot and restored in `finally`. Mapped scalars and complex properties are read through EF entries; shadow properties are excluded unless explicitly enabled.
+Contexts detach variable data at construction and isolate evaluations. Variable names cannot replace built-ins. Cancellation propagates rather than being disguised as a failed record. Diagnostics carry rule/version, phase, field and engine position where available; they do not include source values, full expressions or raw exception messages. See [execution](docs/EXECUTION.md).
 
-`LoadedNavigations` is an explicit allowlist. A requested but unloaded navigation throws by default; set `OmitUnloadedNavigations` deliberately to omit it. Cyclic graphs still fail rather than silently dropping references. Ordinary non-proxy entities using `ILazyLoader` must also use this adapter: the core cannot infer all hidden getter behavior.
+## Optional features
 
-```csharp
-var options = new EfCoreReadOptions
-{
-    LoadedNavigations = new HashSet<string> { "Orders" }
-};
-// Load the relationship explicitly before projecting; the adapter never loads it.
+**Contracts.** Configure `ContractProvider = new JsonSchemaContractProvider()` and supply `inputSchema` / `outputSchema` in a definition. Unsupported assertions fail during compilation, and remote references are not resolved. The [contract profile](docs/CONTRACTS.md) is deliberately smaller than complete JSON Schema.
+
+**Selective reading.** Set `EnableSelectiveReading = true` to prune statically proven root POCO members. Dynamic/context-dependent expressions fall back to full reading. Input contracts disable pruning so validation sees the full input. Nested selected subtrees are still normalized completely. Existing adapters keep their source-specific policies.
+
+**Functions.** Register trusted callbacks in an immutable `ProjectionFunctionCatalog`, then authorize function names explicitly in each `ProjectionExecutionContext`. An impure callback needs additional execution opt-in. This is not arbitrary C# execution from JSON or a sandbox.
+
+**Typed metadata.** `ProjectWithTypeInfo<T>()` accepts `JsonTypeInfo<T>`. It honors the supplied serializer contract. This removes reflection from that destination path, not necessarily from source reading or the whole application.
+
+**Streaming.** `ProjectMany`, `ProjectManyAsync` and `ProjectJsonLinesAsync` reuse plans, preserve order and report per-record outcomes. JSONL is incremental by record, not a streaming evaluator for a single arbitrarily large document. See [streaming](docs/STREAMING.md).
+
+**Document operations.** Detached patches and pipelines preserve the original document on failure. See [document operations](docs/DOCUMENTS.md).
+
+**Query and generated mapping.** Scalar property paths and constants can use the restricted `Projecta.Queryable` or compile-time generator. These are explicit profiles, not alternative ways to execute every JSONata expression. See [static projections](docs/STATIC-PROJECTIONS.md).
+
+## Existing integration contracts
+
+DTOs, records, public inherited properties, dictionaries with string keys, arrays, collections, native JSON, `JsonElement`, `JsonDocument` and `JsonNode` remain supported. Custom `IObjectSourceAdapter` and `IProjectionTargetMaterializer` implementations remain available. The generic reader rejects cycles, queryables and unregistered runtime proxies; it skips static properties, indexers and non-public getters.
+
+`Project<T>` uses the System.Text.Json destination contract, rejects unmapped output members and supports constructor binding, required properties and string enums. Missing non-required members keep normal serializer defaults. Register special construction logic in a target materializer; the library does not bypass domain invariants.
+
+The optional Newtonsoft adapter supports JSON DOMs, not Newtonsoft-specific DTO attributes. EF adapters remain **scoped to a DbContext**: tracked entities only, no attach/load/save, explicit navigation allowlists, lazy loading and automatic change detection temporarily disabled and restored. Unloaded requested navigations fail by default. `TrackedEntityUpdater` is opt-in and rejects key/foreign-key/concurrency/generated/relationship updates; it does not enforce domain methods, persist changes or roll back arbitrary setter effects.
+
+The destination type registry is an allowlist of registered CLR aliases. It does not scan assemblies or resolve type names from JSON and is not a substitute for caller authorization.
+
+## Build, verify and package
+
+Use a stable .NET 10 SDK. Full verification requires access to the exact packages declared in central package management.
+
+```powershell
+./scripts/verify.ps1
+./scripts/pack.ps1
 ```
 
-An opt-in `TrackedEntityUpdater.Apply(entity, nativeJObject, permittedProperties)` applies a validated scalar patch to an existing tracked entity. It rejects keys, foreign keys, shadow/concurrency/generated members and relationships. It does not enforce domain methods, emit domain events, persist changes or roll back a setter that throws midway. Use domain factories/methods instead for aggregates with behavioral invariants.
-
-## Runtime target allowlist
-
-```csharp
-var types = new ProjectionTypeRegistry().Register<CustomerView>("customer-view");
-var rule = new ProjectionDefinition
-{
-    TargetType = "customer-view",
-    Expression = "{'Id':'123','Name':'Ana','IsActive':true}"
-};
-object? result = projector.Project(source, rule, types);
+```sh
+./scripts/verify.sh
+./scripts/pack.sh
 ```
 
-No assembly scan or `Type.GetType` is performed from JSON. The registry is not caller authorization: authorize rules and data before invoking the library.
+The **explicit package-free subset** is:
 
-## Limits
-
-```csharp
-var projector = new ObjectProjector(new ProjectionOptions
-{
-    CacheCapacity = 128,
-    Source = new() { MaxDepth = 32, MaxNodes = 50_000, MaxCharacters = 1_000_000 },
-    Output = new() { MaxDepth = 32, MaxNodes = 50_000, MaxCharacters = 1_000_000 },
-    Evaluation = new()
-    {
-        MaxSteps = 250_000,
-        MaxAllocatedTokens = 100_000,
-        MaxRangeLength = 20_000,
-        MaxStringLength = 250_000,
-        Timeout = TimeSpan.FromSeconds(2),
-        AllowDynamicEvaluation = false
-    }
-});
+```sh
+./scripts/verify.sh --core-only
+./scripts/pack.sh --core-only
+# PowerShell: -CoreOnly
 ```
 
-Cancellation is accepted by reader/projector/evaluator APIs. Parser/optimizer nesting and expression length are independently bounded. Regex literals have a 250 ms match timeout. Nested `$eval`, when explicitly enabled, shares the original budget and variable environment.
+`--no-restore` / `-NoRestore` reuses an already successful restore. It does not turn a missing restore into a pass. Verification runs executable suites with `dotnet run`; full verification additionally runs the three retained NUnit suites with `dotnet test` and a relational SQLite test executable. CI is configured for Linux, Windows and macOS; configuration is not evidence that those runners passed.
 
-**These are cooperative safety controls, not a malicious-code sandbox or a hard process-memory cap.** Existing CLR getters, custom converters/functions, BCL operations and malicious regex patterns may do work outside checkpoints. Use approved rules and model types. Isolate untrusted evaluation in an OS/container process with hard CPU/memory/deadline limits. See [security boundaries](docs/SECURITY.md).
+A local `projecta` tool can be installed from `artifacts/packages` after packaging:
 
-## Build, verify, package
-
-Requires a stable .NET 10 SDK and normal NuGet connectivity for integrations and retained NUnit projects.
-
-```bash
-dotnet build Projecta.slnx -c Release
-dotnet run --project tests/Projecta.Tests -c Release
-dotnet run --project tests/Projecta.NewtonsoftIntegration.Tests -c Release
-dotnet run --project tests/Projecta.EntityFrameworkCore.Tests -c Release
-dotnet run --project samples/Projecta.Sample -c Release
-dotnet pack Projecta.slnx -c Release --no-build -o artifacts/packages
+```sh
+dotnet tool install --tool-path .tools --add-source ./artifacts/packages Projecta.Tooling --version 0.2.0
+.tools/projecta help
 ```
 
-`./scripts/verify.sh` and `./scripts/verify.ps1` run the supported verification flow. `--core-only` / `-CoreOnly` selects only the package-free core subset and must not be reported as full integration validation.
+See [tooling and examples](docs/TOOLING.md), [feature status](docs/FEATURES.md), [migration](docs/MIGRATION.md), [performance](docs/PERFORMANCE.md) and [security boundaries](docs/SECURITY.md).
 
-The project-specific verification executables are intentionally package-free where possible; their exit code is nonzero on assertion failure or an unexpected empty run. They are invoked with **`dotnet run`**, not discovered by `dotnet test`. The separate upstream NUnit projects retain original compatibility assertions, including old defaults; they are reference suites, not a claim of full upstream compatibility or executed conformance.
+## License
 
-CI definitions target Linux, Windows and macOS, but only Linux was executed for this delivery. GitHub Actions were not run here.
-
-## Performance
-
-The included warm microbenchmark is runnable with `dotnet run --project benchmarks/Projecta.Benchmarks -c Release`. A separate comparison with the unchanged original engine source (both built on .NET 10) measured roughly **2.3x faster CLR normalization** for one nested synthetic DTO and eliminated quadratic string-padding allocations. These narrow results are not a general throughput claim. Raw observations, workload details and limitations are in [performance notes](docs/PERFORMANCE.md).
-
-## License and scope
-
-MIT. Original copyright and permission text are retained in [LICENSE](LICENSE) and [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). See [upstream scope](docs/UPSTREAM.md) for included engine code, preserved tests and missing upstream git-submodule corpora. No original signing key, upstream publishing identity or application coupling is retained.
+MIT. Retained copyright and permission notices are in [LICENSE](LICENSE) and [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). Package names are local distribution identities; this delivery does not publish or reserve names on a package registry.

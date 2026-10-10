@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><OutputType>Exe</OutputType><IsPackable>true</IsPackable><PackAsTool>true</PackAsTool><ToolCommandName>projecta</ToolCommandName><Description>Local projection validation, preview and measurement tools.</Description></PropertyGroup>
+ <ItemGroup>
+  <ProjectReference Include="../Projecta/Projecta.csproj" />
+  <ProjectReference Include="../Projecta.Contracts/Projecta.Contracts.csproj" />
+  <ProjectReference Include="../Projecta.Streaming/Projecta.Streaming.csproj" />
+  <ProjectReference Include="../Projecta.Documents/Projecta.Documents.csproj" />
+ </ItemGroup>
+</Project>

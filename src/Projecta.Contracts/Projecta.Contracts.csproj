@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>true</IsPackable><Description>Bounded structural JSON contracts for Projecta.</Description></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../Projecta/Projecta.csproj" /></ItemGroup>
+</Project>

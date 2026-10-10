@@ -78,6 +78,21 @@ namespace Projecta
         }
 
 
+        /// <summary>True when a name is reserved by the built-in environment.</summary>
+        public static bool IsBuiltinName(string name) => Builtins.m_bindings.ContainsKey(name);
+
+        /// <summary>Binds trusted synchronous host code. Authorization and result limits belong to the caller.</summary>
+        public void BindHostFunction(string name, Func<IReadOnlyList<JToken>, JToken> callback,
+            int minArguments, int maxArguments, string? signature = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(name);
+            ArgumentNullException.ThrowIfNull(callback);
+            if (minArguments < 0 || maxArguments < minArguments || maxArguments > 64)
+                throw new ArgumentOutOfRangeException(nameof(maxArguments));
+            if (IsBuiltinName(name)) throw new ArgumentException("Built-in names cannot be replaced by host functions.", nameof(name));
+            this.m_bindings.Add(name, new HostFunctionToken(name, callback, minArguments, maxArguments, signature));
+        }
+
         public void BindValue(string name, JToken value)
         {
             this.m_bindings[name] = value;  //allow overrides

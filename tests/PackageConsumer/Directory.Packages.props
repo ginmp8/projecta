@@ -1,0 +1,11 @@
+<Project>
+ <Import Project="../../Directory.Packages.props" />
+ <ItemGroup>
+  <PackageVersion Include="Projecta" Version="$(Version)" />
+  <PackageVersion Include="Projecta.Contracts" Version="$(Version)" />
+  <PackageVersion Include="Projecta.Streaming" Version="$(Version)" />
+  <PackageVersion Include="Projecta.Documents" Version="$(Version)" />
+  <PackageVersion Include="Projecta.Queryable" Version="$(Version)" />
+  <PackageVersion Include="Projecta.SourceGeneration" Version="$(Version)" />
+ </ItemGroup>
+</Project>

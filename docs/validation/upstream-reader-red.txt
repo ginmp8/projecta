@@ -1,5 +1,0 @@
-FAIL indexers excluded: TargetParameterCountException Parameter count mismatch.
-FAIL generic enumerable: Exception Enumerable is not array
-FAIL enum is text: Exception Enum is not text
-Stack overflow.
-Original process terminated with stack overflow during GUID conversion. Full repetitive stack omitted.

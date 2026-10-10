@@ -1,0 +1,17 @@
+<Solution>
+  <Project Path="benchmarks/Projecta.Benchmarks/Projecta.Benchmarks.csproj" />
+  <Project Path="samples/Projecta.Sample/Projecta.Sample.csproj" />
+  <Project Path="src/Projecta.Contracts/Projecta.Contracts.csproj" />
+  <Project Path="src/Projecta.Core/Projecta.Core.csproj" />
+  <Project Path="src/Projecta.Documents/Projecta.Documents.csproj" />
+  <Project Path="src/Projecta.Queryable/Projecta.Queryable.csproj" />
+  <Project Path="src/Projecta.SourceGeneration/Projecta.SourceGeneration.csproj" />
+  <Project Path="src/Projecta.Streaming/Projecta.Streaming.csproj" />
+  <Project Path="src/Projecta.SystemTextJson/Projecta.SystemTextJson.csproj" />
+  <Project Path="src/Projecta.Tooling/Projecta.Tooling.csproj" />
+  <Project Path="src/Projecta/Projecta.csproj" />
+  <Project Path="tests/Projecta.Evolution.Tests/Projecta.Evolution.Tests.csproj" />
+  <Project Path="tests/Projecta.Generated.Tests/Projecta.Generated.Tests.csproj" />
+  <Project Path="tests/Projecta.Semantics.Tests/Projecta.Semantics.Tests.csproj" />
+  <Project Path="tests/Projecta.Tests/Projecta.Tests.csproj" />
+</Solution>

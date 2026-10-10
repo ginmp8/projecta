@@ -1,20 +1,23 @@
-# Performance evidence
+# Performance measurements
 
-Executed on Linux x64 with SDK 10.0.302 / runtime 10.0.10. The comparison builds the unchanged supplied engine source on the same .NET 10 runtime; this isolates source changes rather than mixing runtime versions.
+The included protocol is `projecta-batch-means-v1`: 200 warmup operations, 9 rounds of 2,000 operations per scenario, with raw samples, allocated bytes per operation and GC counts. Run:
 
-Three warm rounds, medians below. DTO workload: one object containing an ID, a string and 20 nested objects (each with ID/name/decimal). 200 warmups and 10,000 measured calls per reader round. Padding workload: `pad("x", 20000, "ab")`, 200 warmups and 200 measured calls per round. Source normalization outputs were checked for equality before timing.
+```sh
+dotnet run --project src/Projecta.Tooling -c Release -- benchmark --iterations 2000 --warmup 200 --rounds 9
+```
 
-| Scenario | Microseconds / operation | Allocated bytes / operation |
+Observed on .NET runtime 10.0.10, Debian GNU/Linux 13 (trixie), X64, 4 reported processors. The sandbox is not dedicated benchmark hardware. Runtime JIT, scheduling, GC and contention affect observations. The report describes a synthetic source with a few scalar/array properties and an unused 4 KiB string.
+
+| Scenario | Median batch mean, microseconds/op | Median allocated bytes/op |
 |---|---:|---:|
-| projecta-object-reader | 4.847 | 10,619 |
-| projecta-pad-20000 | 23.992 | 40,024 |
-| upstream-object-reader | 11.219 | 10,768 |
-| upstream-pad-20000 | 8602.449 | 200,320,024 |
+| normalize-full | 3.355 | 1840.0 |
+| normalize-selected | 1.421 | 872.0 |
+| evaluate-to-native | 14.821 | 6618.6 |
+| evaluate-to-dto | 22.165 | 7242.6 |
+| cold-projector-and-compile | 11.418 | 6793.0 |
 
-These are synthetic microbenchmarks measured with Stopwatch and per-thread allocation counters, not BenchmarkDotNet confidence intervals, load testing or service-level latency. Order, JIT tiering and container scheduling may affect results. No claim is made for all DTO sizes, all expressions, EF workloads or untrusted input.
+The two normalization scenarios intentionally read different member sets; they illustrate the cost of the configured selective path, not semantic interchangeability for arbitrary rules. The evaluation scenarios also include source normalization; the native scenario returns detached tokens, and the DTO scenario materializes a typed result. The cold scenario includes constructing a projector and compiling one expression.
 
-The direct reader's main change is caching eligible property accessors instead of discovering/reflection-invoking them on every object; budget/cycle validation adds work. String padding now allocates once and fills the result, avoiding the original quadratic concatenation pattern.
+`P95BatchMeanNanoseconds` is the 95th percentile of **round-average costs**, not the p95 latency of individual requests. The protocol does not perform statistical significance analysis, production load/soak tests, arbitrary hardware normalization or cross-engine comparisons. GC counts cover measured rounds; allocation measurement is for the executing thread. Source getters/callbacks that perform asynchronous work are not represented.
 
-The included `benchmarks/Projecta.Benchmarks` measures the current reader, compiled projection to native JSON and compiled projection to DTO. It does not require or download the original package. The original-source comparison harness is recorded in `docs/validation/comparison-harness.cs`; its project paths were sandbox-local and were not injected into product code.
-
-Raw data: `validation/performance-comparison.json` and `validation/projecta-benchmark.log`.
+These numbers are observations, not performance promises. Raw results are included in `artifacts/validation/benchmark.json`. Benchmark the actual source adapters, expression mix, cold/warm ratios and concurrency before making capacity decisions. The legacy warm sample remains runnable under `benchmarks/Projecta.Benchmarks`; it is not the qualification protocol.

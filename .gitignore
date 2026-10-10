@@ -11,3 +11,5 @@ artifacts/packages/
 *.tmp
 *.temp
 *.cache
+artifacts/consumer-cache/
+.tools/

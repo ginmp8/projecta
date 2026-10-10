@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><OutputType>Exe</OutputType><IsPackable>false</IsPackable><ImplicitUsings>enable</ImplicitUsings></PropertyGroup>
+ <ItemGroup><ProjectReference Include="../../src/Projecta.Tooling/Projecta.Tooling.csproj" /></ItemGroup>
+ <ItemGroup><None Include="fixtures/*.json" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+</Project>

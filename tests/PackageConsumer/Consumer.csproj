@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><TreatWarningsAsErrors>true</TreatWarningsAsErrors><IsPackable>false</IsPackable></PropertyGroup>
+ <ItemGroup>
+  <PackageReference Include="Projecta" />
+  <PackageReference Include="Projecta.Contracts" />
+  <PackageReference Include="Projecta.Streaming" />
+  <PackageReference Include="Projecta.Documents" />
+  <PackageReference Include="Projecta.Queryable" />
+  <PackageReference Include="Projecta.SourceGeneration" PrivateAssets="all" />
+ </ItemGroup>
+</Project>
