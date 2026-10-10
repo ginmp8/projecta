@@ -1,35 +1,35 @@
-# Security boundaries
+# Security and trust boundaries
 
-## Implemented controls
+## Intended use
 
-- Bounded source graphs: maximum recursion depth, total nodes and characters; cycle detection using reference identity; checked enumeration and cancellation.
-- Public instance readable properties only; indexers/static/non-public getters excluded. Weak type caches avoid permanently rooting dynamically unloadable model assemblies.
-- Unregistered dynamic proxies and queryables rejected. EF adapter handles mapped/tracked sources explicitly and temporarily disables lazy loading/change detection.
-- Native JSON parser has character, string, depth and token caps in sync/async paths. Strict mode rejects `undefined`.
-- Expression length and parser/optimizer recursion are bounded before evaluation.
-- Evaluation budgets cover evaluator checkpoints, many builtin loops, native-token creation and range/string growth. Range arithmetic uses decimal/count-based traversal to avoid long overflow.
-- Regex literals have finite match timeouts. `$eval` is denied by default; opt-in calls inherit environment/budget.
-- Default environments cannot be globally mutated by one call to contaminate another.
-- Target aliases require code-side registration. Unknown destination properties fail under the default .NET serializer. No JSON-driven reflection type loading or entity attachment occurs.
+Projecta processes approved projection rules and permitted data models in a host application. The host owns user/tenant authorization, field visibility, model admission, secret management, process isolation and persistence. Registering a type or function is not per-user authorization. Never interpret a caller-supplied assembly-qualified type name or arbitrary C# snippet.
 
-## Explicit non-guarantees
+## Cooperative limits
 
-1. CLR objects and extension implementations are **trusted executable code**. Getters, constructors, factories, converters, enumerators and host-bound functions can perform arbitrary side effects. This library cannot preempt them. Configure `IncludeProperty` or source adapters before reading sensitive types.
-2. `MaxAllocatedTokens` counts native DOM allocations, not every byte allocated by .NET. Some BCL methods can allocate before a checkpoint. Timeouts and cancellation are cooperative, not hard process deadlines.
-3. Regex timeouts do not make hostile regex patterns safe; parsing/compilation and runtime work remain potential resource risks. Approve expressions or isolate them externally.
-4. Per-DbContext adapters are not thread-safe. Do not register an EF-backed projector as a singleton or use it concurrently. Core-only plans may be reused concurrently; do not mutate caller-provided EvaluationEnvironment bindings during evaluation.
-5. Projection is not authorization, tenant filtering, redaction or a SQL query planner. Select/load only authorized data and approve rule changes before execution. Errors may contain inner exceptions from trusted third-party code; applications must apply their own sensitive-log policy.
-6. Generic domain target construction is not invariant enforcement. A tracked scalar update can be partly applied in memory if a setter throws. Persist only after domain validation, and use domain methods when required.
-7. Retained native low-level APIs and explicitly supplied ASTs/functions are developer APIs, not safe untrusted object channels. Use `ObjectProjector` with bounded source normalization for configurable data transformations.
+Reader/output limits bound depth, nodes and characters. Engine limits bound steps, allocated tokens, recursion/ranges/string growth and elapsed time at checkpoints. Parser expression length/nesting are independently bounded. Cancellation is propagated. `$eval` is disabled by default and, when enabled, shares the original budget.
 
-## Verification status
+Existing CLR getters, custom converters, domain factories, callbacks, regex engine work and other runtime operations can execute between checkpoints. These controls are **not** a hard timeout, memory quota or malicious-code sandbox. The library does not spawn an isolated worker. For untrusted computation use an explicitly restricted OS/container process with resource/deadline controls and a minimal serializable data boundary.
 
-See VALIDATION.md. No current NuGet vulnerability audit, dependency integrity review for all external packages, pentest, untrusted-process isolation test or complete EF provider test suite was executed. Do not label this alpha production-approved.
+## Data minimization and diagnostics
 
-## Primary reference basis
+Generic sources exclude static/indexer/nonpublic getters, reject cycles/queryables/unknown runtime proxies and respect supported System.Text.Json metadata. Selective reading is an optimization for proven root dependencies, not a security boundary or universal getter policy. Explicit source adapters are needed for models with hidden lazy loading or side effects.
 
-- https://learn.microsoft.com/en-us/ef/core/querying/related-data/lazy
-- https://learn.microsoft.com/en-us/dotnet/standard/base-types/best-practices-regex
-- https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.metadata.imodel.findruntimeentitytype?view=efcore-10.0
+Structured diagnostics omit raw inputs, expressions, exception messages and stacks. Rule IDs, field names, pointers and fingerprints are metadata, not guaranteed non-sensitive information. Direct throwing APIs may retain inner exceptions; do not log them indiscriminately. Telemetry installs no exporter and sends no network data. CLI stdout intentionally returns user-requested transformed data.
 
-The code and executed tests, rather than these general references alone, define the delivered behavior.
+## Functions and contracts
+
+Functions are registered by trusted application code and individually allowed per call. Variables cannot replace built-ins. Callback arguments/results are detached and bounded. Purity is a host assertion, and callback cancellation is cooperative. Do not give callback implementations unnecessary filesystem/network/credential access.
+
+Schemas are compiled under explicit limits and accept only a declared profile. Unknown assertions, remote references and unsupported formats fail closed. Regex patterns have length/time bounds. There is no remote schema loader, code compilation or schema-based type activation.
+
+## Documents, database and generated code
+
+Patches/pipelines work on detached trees and do not persist or mutate EF entities. The original JSON remains unchanged after a failed operation. External callback side effects are not transactional. Authorize patch paths before application. Root removal is rejected.
+
+The EF adapter must remain scoped to its DbContext, cannot be used concurrently, and never loads/attaches/saves. The existing scalar updater does not enforce aggregate invariants or roll back arbitrary setter effects. Use domain methods/factories for behavior-rich models.
+
+Queryable translation rejects unsupported constructs and never silently switches to client enumeration. SQL translation still depends on the provider. Generated mappers run ordinary trusted CLR property access; no compiler plugin is a runtime sandbox. The analyzer requires a .NET 10 compiler host.
+
+## Supply chain and release gates
+
+Central dependency versions, warnings-as-errors and inherited notices are preserved. No registry audit was successfully completed in the delivery environment; this is not a dependency-vulnerability clearance. Exact optional package restore, full integration tests, platform CI, application-specific hard isolation and operational review remain release gates. Retain an immutable known-good package and application tests before replacing a deployed version.

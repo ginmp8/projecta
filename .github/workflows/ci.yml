@@ -4,7 +4,9 @@ permissions:
   contents: read
 jobs:
   test:
+    timeout-minutes: 30
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
@@ -13,11 +15,26 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Build and integration verification
+      - name: Build and execute full verification
         shell: pwsh
         run: ./scripts/verify.ps1
-      - name: Package all libraries
-        run: dotnet pack Projecta.slnx -c Release --no-build -o artifacts/packages
+      - name: Package
+        shell: pwsh
+        run: ./scripts/pack.ps1
+      - name: Verify packaged consumer
+        shell: pwsh
+        run: |
+          dotnet restore tests/PackageConsumer/Consumer.csproj --configfile tests/PackageConsumer/NuGet.Config --packages artifacts/consumer-cache --force
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet run --project tests/PackageConsumer/Consumer.csproj -c Release --no-restore
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Retain verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-${{ matrix.os }}
+          path: artifacts/validation/
+          if-no-files-found: warn
       - uses: actions/upload-artifact@v4
         with:
           name: packages-${{ matrix.os }}

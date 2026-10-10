@@ -151,7 +151,8 @@ namespace Projecta.Json
             else
             {
                 NumberStyles numStyle = NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent;
-                if (Decimal.TryParse(s, numStyle, CultureInfo.InvariantCulture, out decimal decimalResult))
+                if (Decimal.TryParse(s, numStyle, CultureInfo.InvariantCulture, out decimal decimalResult) &&
+                    Double.TryParse(s, numStyle, CultureInfo.InvariantCulture, out double comparable) && (double)decimalResult == comparable)
                 {
                     return new JValue(decimalResult);
                 }

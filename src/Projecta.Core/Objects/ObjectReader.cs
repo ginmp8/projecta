@@ -37,6 +37,16 @@ public sealed class ObjectReader
         if (_adapters.Length != 0) TokenValidation.Validate(result, _options, cancellationToken);
         return result;
     }
+    /// <summary>Selects only root POCO members. JSON containers, collections and adapters retain their full semantics.</summary>
+    public JToken ReadSelected(object? source, IReadOnlySet<string> rootMembers, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(rootMembers);
+        var context = new ObjectReadContext(_options, _adapters, cancellationToken,
+            new HashSet<string>(rootMembers, StringComparer.Ordinal));
+        JToken result = context.Read(source);
+        if (_adapters.Length != 0) TokenValidation.Validate(result, _options, cancellationToken);
+        return result;
+    }
 }
 
 public sealed class ObjectReadContext
@@ -49,12 +59,26 @@ public sealed class ObjectReadContext
     private readonly IObjectSourceAdapter[] _adapters;
     private readonly CancellationToken _cancellation;
     private readonly HashSet<object> _active = new(ReferenceEqualityComparer.Instance);
+    private readonly IReadOnlySet<string>? _rootMembers;
+    private readonly Dictionary<object, object> _state = new(ReferenceEqualityComparer.Instance);
     private int _depth;
     private int _nodes;
     private long _characters;
 
-    internal ObjectReadContext(ObjectReadOptions options, IObjectSourceAdapter[] adapters, CancellationToken cancellation)
-    { _options = options; _adapters = adapters; _cancellation = cancellation; }
+    internal ObjectReadContext(ObjectReadOptions options, IObjectSourceAdapter[] adapters, CancellationToken cancellation,
+        IReadOnlySet<string>? rootMembers = null)
+    { _options = options; _adapters = adapters; _cancellation = cancellation; _rootMembers = rootMembers; }
+
+    /// <summary>Per-snapshot adapter state; discarded when the root read completes.</summary>
+    public T GetOrCreateState<T>(object owner, Func<T> factory) where T : class
+    {
+        ArgumentNullException.ThrowIfNull(owner);
+        ArgumentNullException.ThrowIfNull(factory);
+        if (_state.TryGetValue(owner, out object? state)) return (T)state;
+        T created = factory() ?? throw new InvalidOperationException("Adapter state cannot be null.");
+        _state.Add(owner, created);
+        return created;
+    }
 
     public CancellationToken CancellationToken => _cancellation;
 
@@ -145,6 +169,7 @@ public sealed class ObjectReadContext
                 _cancellation.ThrowIfCancellationRequested();
                 if (member.Ignore == JsonIgnoreCondition.Always || _options.IncludeProperty?.Invoke(type, member.Property) == false) continue;
                 string name = _options.UseJsonPropertyNames ? member.JsonName : member.Property.Name;
+                if (_depth == 1 && _adapters.Length == 0 && _rootMembers is not null && !_rootMembers.Contains(name)) continue;
                 ChargeText(name);
                 object? value;
                 try { value = member.Get(source); }
@@ -197,7 +222,7 @@ public sealed class ObjectReadContext
             case JsonValueKind.Array:
                 var arr = new JArray(); foreach (var c in e.EnumerateArray()) arr.Add(Read(c)); return arr;
             case JsonValueKind.String: string s = e.GetString()!; ChargeText(s); return new JValue(s);
-            case JsonValueKind.Number: return e.TryGetInt64(out long l) ? new JValue(l) : e.TryGetDecimal(out decimal d) ? new JValue(d) : new JValue(e.GetDouble());
+            case JsonValueKind.Number: return e.TryGetInt64(out long l) ? new JValue(l) : e.TryGetDecimal(out decimal d) && (double)d == e.GetDouble() ? new JValue(d) : new JValue(e.GetDouble());
             case JsonValueKind.True: return new JValue(true);
             case JsonValueKind.False: return new JValue(false);
             case JsonValueKind.Null: return JValue.CreateNull();

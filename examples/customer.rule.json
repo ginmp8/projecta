@@ -1,0 +1,1 @@
+{"id":"customer-example","version":1,"fields":{"Id":"$string(id)","Name":"name"},"outputSchema":{"type":"object","required":["Id","Name"],"additionalProperties":false,"properties":{"Id":{"type":"string"},"Name":{"type":"string"}}}}

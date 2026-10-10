@@ -40,6 +40,23 @@ namespace Projecta.Json
         public JValue(DateTime value) : this(JTokenType.String, value.ToString("O", CultureInfo.InvariantCulture)) { }
         public JValue(TimeSpan value) : this(JTokenType.String, value.ToString("c", CultureInfo.InvariantCulture)) { }
 
+        /// <summary>Returns an invariant, round-trippable representation of the stored number.</summary>
+        public string GetNumberText() => this.Type switch
+        {
+            JTokenType.Integer => ((long)this).ToString(CultureInfo.InvariantCulture),
+            JTokenType.Float when this.Value is decimal d => d.ToString("G29", CultureInfo.InvariantCulture),
+            JTokenType.Float => ((double)this).ToString("R", CultureInfo.InvariantCulture),
+            _ => throw new InvalidOperationException("The token is not a number.")
+        };
+
+        /// <summary>Returns the original decimal representation only when no double-to-decimal rounding is needed.</summary>
+        public bool TryGetExactDecimal(out decimal value)
+        {
+            if (this.Value is decimal d) { value = d; return true; }
+            if (this.Type == JTokenType.Integer) { value = (long)this; return true; }
+            value = default; return false;
+        }
+
         private static object DoubleToDecimal(double value)
         {
             if (Double.IsInfinity(value) || Double.IsNaN(value))
@@ -82,10 +99,10 @@ namespace Projecta.Json
                     //see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString
                     // Scientific notation is used if the radix is 10 and the number's magnitude (ignoring sign) is greater than or equal to 10^21 or less than 10^-6.
                     string format = "g";    //General
-                    if (decimalValue < 1e-6m || decimalValue >= 1e21m)
+                    if (decimalValue != 0 && (Math.Abs(decimalValue) < 1e-6m || Math.Abs(decimalValue) >= 1e21m))
                     {
                         //format = "e";
-                        format = "0.######e+0";
+                        format = "0.############################e+0";
                     }
 
                     builder.Append(decimalValue.ToString(format, CultureInfo.InvariantCulture));
@@ -126,22 +143,6 @@ namespace Projecta.Json
             return new JValue(this.Type, this.Value);
         }
 
-        //see Newtonsoft.Json.Utilities.MathUtils.ApproxEquals
-        private static bool ApproxEquals(double d1, double d2)
-        {
-            const double epsilon = 2.2204460492503131E-16;
-
-            if (d1 == d2)
-            {
-                return true;
-            }
-
-            double tolerance = ((Math.Abs(d1) + Math.Abs(d2)) + 10.0) * epsilon;
-            double difference = d1 - d2;
-
-            return (-tolerance < difference && tolerance > difference);
-        }
-
         public override bool DeepEquals(JToken other)
         {
             if (this.Type != other.Type)
@@ -159,18 +160,9 @@ namespace Projecta.Json
 
             case JTokenType.Float:
                 {
-                    try
-                    {
-                        decimal thisV = (decimal)this;
-                        decimal otherV = (decimal)otherValue;
-                        return Decimal.Compare(thisV, otherV) == 0;
-                    }
-                    catch (System.OverflowException)
-                    {
-                        double thisV = (double)this;
-                        double otherV = (double)otherValue;
-                        return ApproxEquals(thisV, otherV);
-                    }
+                    if (this.TryGetExactDecimal(out decimal left) && otherValue.TryGetExactDecimal(out decimal right))
+                        return left == right;
+                    return ((double)this).Equals((double)otherValue);
                 }
             case JTokenType.Integer:
                 {

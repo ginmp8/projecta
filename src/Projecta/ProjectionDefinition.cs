@@ -14,6 +14,8 @@ public sealed record ProjectionDefinition
     public string? TargetType { get; init; }
     public string? Expression { get; init; }
     public Dictionary<string, string>? Fields { get; init; }
+    public JsonElement? InputSchema { get; init; }
+    public JsonElement? OutputSchema { get; init; }
 
     public static ProjectionDefinition Parse(string json)
     {
@@ -21,18 +23,18 @@ public sealed record ProjectionDefinition
         if (json.Length > 65_536) throw new ProjectionConfigurationException("Definition exceeds 65536 characters.");
         using var document = JsonDocument.Parse(json, new JsonDocumentOptions { MaxDepth = 16 });
         // System.Text.Json otherwise accepts duplicate keys with last-value-wins semantics.
-        ValidateDuplicates(document.RootElement);
+        ValidateDuplicates(document.RootElement, true);
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow };
         var result = JsonSerializer.Deserialize<ProjectionDefinition>(document.RootElement, options)
             ?? throw new ProjectionConfigurationException("Null definition.");
         _ = result.BuildExpression(); return result;
     }
 
-    private static void ValidateDuplicates(JsonElement value)
+    private static void ValidateDuplicates(JsonElement value, bool definitionRoot = false)
     {
         if (value.ValueKind == JsonValueKind.Object)
         {
-            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var names = new HashSet<string>(definitionRoot ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
             foreach (var p in value.EnumerateObject())
             { if (!names.Add(p.Name)) throw new ProjectionConfigurationException("Duplicate definition property."); ValidateDuplicates(p.Value); }
         }

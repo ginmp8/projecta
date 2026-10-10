@@ -43,15 +43,8 @@ namespace Projecta.NewtonsoftJson
             case Newtonsoft.Json.Linq.JTokenType.Boolean:
                 return new JValue((bool)value);
             case Newtonsoft.Json.Linq.JTokenType.Float:
-                try
-                {
-                    decimal decimalValue = (decimal)value;
-                    return new JValue(decimalValue);
-                }
-                catch (OverflowException)
-                {
-                    return new JValue((double)value);
-                }
+                return ((Newtonsoft.Json.Linq.JValue)value).Value is decimal exact
+                    ? new JValue(exact) : new JValue((double)value);
             case Newtonsoft.Json.Linq.JTokenType.Integer:
                 return new JValue((long)value);
             case Newtonsoft.Json.Linq.JTokenType.Null:
@@ -141,15 +134,8 @@ namespace Projecta.NewtonsoftJson
             case JTokenType.Undefined:
                 return Newtonsoft.Json.Linq.JValue.CreateUndefined();
             case JTokenType.Float:
-                try
-                {
-                    decimal decimalValue = (decimal)value;
-                    return new Newtonsoft.Json.Linq.JValue(decimalValue);
-                }
-                catch (OverflowException)
-                {
-                    return new Newtonsoft.Json.Linq.JValue((double)value);
-                }
+                return ((JValue)value).TryGetExactDecimal(out decimal exact)
+                    ? new Newtonsoft.Json.Linq.JValue(exact) : new Newtonsoft.Json.Linq.JValue((double)value);
             case JTokenType.Integer:
                 return new Newtonsoft.Json.Linq.JValue((long)value);
             case JTokenType.String:

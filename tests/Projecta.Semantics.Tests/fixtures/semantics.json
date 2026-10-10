@@ -1,0 +1,4449 @@
+{
+  "name": "projecta-semantics-v1",
+  "cases": [
+    {
+      "id": "language-0",
+      "expression": "42",
+      "input": null,
+      "expected": 42
+    },
+    {
+      "id": "language-1",
+      "expression": "null",
+      "input": null,
+      "expected": null
+    },
+    {
+      "id": "language-2",
+      "expression": "true",
+      "input": null,
+      "expected": true
+    },
+    {
+      "id": "language-3",
+      "expression": "'hello'",
+      "input": null,
+      "expected": "hello"
+    },
+    {
+      "id": "language-4",
+      "expression": "[]",
+      "input": null,
+      "expected": []
+    },
+    {
+      "id": "language-5",
+      "expression": "{}",
+      "input": null,
+      "expected": {}
+    },
+    {
+      "id": "language-6",
+      "expression": "[1..5]",
+      "input": null,
+      "expected": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "language-7",
+      "expression": "$sum([1,2,3])",
+      "input": null,
+      "expected": 6
+    },
+    {
+      "id": "language-8",
+      "expression": "$count([1,2,3])",
+      "input": null,
+      "expected": 3
+    },
+    {
+      "id": "language-9",
+      "expression": "$average([1,2])",
+      "input": null,
+      "expected": 1.5
+    },
+    {
+      "id": "language-10",
+      "expression": "$max([1,3,2])",
+      "input": null,
+      "expected": 3
+    },
+    {
+      "id": "language-11",
+      "expression": "$min([1,3,2])",
+      "input": null,
+      "expected": 1
+    },
+    {
+      "id": "language-12",
+      "expression": "$uppercase('hello')",
+      "input": null,
+      "expected": "HELLO"
+    },
+    {
+      "id": "language-13",
+      "expression": "$lowercase('HELLO')",
+      "input": null,
+      "expected": "hello"
+    },
+    {
+      "id": "language-14",
+      "expression": "$trim('  a  b  ')",
+      "input": null,
+      "expected": "a b"
+    },
+    {
+      "id": "language-15",
+      "expression": "$substring('hello',1,3)",
+      "input": null,
+      "expected": "ell"
+    },
+    {
+      "id": "language-16",
+      "expression": "$contains('hello','ell')",
+      "input": null,
+      "expected": true
+    },
+    {
+      "id": "language-17",
+      "expression": "$split('a,b',',')",
+      "input": null,
+      "expected": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "id": "language-18",
+      "expression": "$join(['a','b'],'-')",
+      "input": null,
+      "expected": "a-b"
+    },
+    {
+      "id": "language-19",
+      "expression": "$sort([3,1,2])",
+      "input": null,
+      "expected": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "language-20",
+      "expression": "$distinct([1,1,2])",
+      "input": null,
+      "expected": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "language-21",
+      "expression": "$map([1,2,3],function($v){$v*2})",
+      "input": null,
+      "expected": [
+        2,
+        4,
+        6
+      ]
+    },
+    {
+      "id": "language-22",
+      "expression": "$reduce([1,2,3],function($a,$b){$a+$b},0)",
+      "input": null,
+      "expected": 6
+    },
+    {
+      "id": "language-23",
+      "expression": "($f:=function($x){$x*2};$f(4))",
+      "input": null,
+      "expected": 8
+    },
+    {
+      "id": "missing",
+      "expression": "missing",
+      "input": {},
+      "undefined": true
+    },
+    {
+      "id": "defined-null",
+      "expression": "value",
+      "input": {
+        "value": null
+      },
+      "expected": null
+    },
+    {
+      "id": "binding",
+      "expression": "$limit+value",
+      "input": {
+        "value": 3
+      },
+      "bindings": {
+        "limit": 2
+      },
+      "expected": 5
+    },
+    {
+      "id": "arithmetic-type-error",
+      "expression": "'x'+1",
+      "input": null,
+      "errorCode": "T2001"
+    },
+    {
+      "id": "constant-field-output",
+      "expression": "{'Name':name,'Active':status='A'}",
+      "input": {
+        "name": "Ana",
+        "status": "A"
+      },
+      "expected": {
+        "Name": "Ana",
+        "Active": true
+      }
+    },
+    {
+      "id": "array-shape-0",
+      "expression": "[items.name]",
+      "input": {
+        "items": []
+      },
+      "expected": []
+    },
+    {
+      "id": "array-filter-0",
+      "expression": "[items[value>=2].value]",
+      "input": {
+        "items": []
+      },
+      "expected": []
+    },
+    {
+      "id": "array-shape-1",
+      "expression": "[items.name]",
+      "input": {
+        "items": [
+          {
+            "value": 0,
+            "name": "0"
+          }
+        ]
+      },
+      "expected": [
+        "0"
+      ]
+    },
+    {
+      "id": "array-filter-1",
+      "expression": "[items[value>=2].value]",
+      "input": {
+        "items": [
+          {
+            "value": 0,
+            "name": "0"
+          }
+        ]
+      },
+      "expected": []
+    },
+    {
+      "id": "array-shape-2",
+      "expression": "[items.name]",
+      "input": {
+        "items": [
+          {
+            "value": 0,
+            "name": "0"
+          },
+          {
+            "value": 1,
+            "name": "1"
+          }
+        ]
+      },
+      "expected": [
+        "0",
+        "1"
+      ]
+    },
+    {
+      "id": "array-filter-2",
+      "expression": "[items[value>=2].value]",
+      "input": {
+        "items": [
+          {
+            "value": 0,
+            "name": "0"
+          },
+          {
+            "value": 1,
+            "name": "1"
+          }
+        ]
+      },
+      "expected": []
+    },
+    {
+      "id": "array-shape-3",
+      "expression": "[items.name]",
+      "input": {
+        "items": [
+          {
+            "value": 0,
+            "name": "0"
+          },
+          {
+            "value": 1,
+            "name": "1"
+          },
+          {
+            "value": 2,
+            "name": "2"
+          }
+        ]
+      },
+      "expected": [
+        "0",
+        "1",
+        "2"
+      ]
+    },
+    {
+      "id": "array-filter-3",
+      "expression": "[items[value>=2].value]",
+      "input": {
+        "items": [
+          {
+            "value": 0,
+            "name": "0"
+          },
+          {
+            "value": 1,
+            "name": "1"
+          },
+          {
+            "value": 2,
+            "name": "2"
+          }
+        ]
+      },
+      "expected": [
+        2
+      ]
+    },
+    {
+      "id": "array-shape-4",
+      "expression": "[items.name]",
+      "input": {
+        "items": [
+          {
+            "value": 0,
+            "name": "0"
+          },
+          {
+            "value": 1,
+            "name": "1"
+          },
+          {
+            "value": 2,
+            "name": "2"
+          },
+          {
+            "value": 3,
+            "name": "3"
+          }
+        ]
+      },
+      "expected": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ]
+    },
+    {
+      "id": "array-filter-4",
+      "expression": "[items[value>=2].value]",
+      "input": {
+        "items": [
+          {
+            "value": 0,
+            "name": "0"
+          },
+          {
+            "value": 1,
+            "name": "1"
+          },
+          {
+            "value": 2,
+            "name": "2"
+          },
+          {
+            "value": 3,
+            "name": "3"
+          }
+        ]
+      },
+      "expected": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "arithmetic-0-+",
+      "expression": "a+b",
+      "input": {
+        "a": -635,
+        "b": -357
+      },
+      "expected": -992
+    },
+    {
+      "id": "arithmetic-0--",
+      "expression": "a-b",
+      "input": {
+        "a": -635,
+        "b": -357
+      },
+      "expected": -278
+    },
+    {
+      "id": "arithmetic-0-*",
+      "expression": "a*b",
+      "input": {
+        "a": -635,
+        "b": -357
+      },
+      "expected": 226695
+    },
+    {
+      "id": "arithmetic-0-=",
+      "expression": "a=b",
+      "input": {
+        "a": -635,
+        "b": -357
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-0-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -635,
+        "b": -357
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-0-<",
+      "expression": "a<b",
+      "input": {
+        "a": -635,
+        "b": -357
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-0->",
+      "expression": "a>b",
+      "input": {
+        "a": -635,
+        "b": -357
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-1-+",
+      "expression": "a+b",
+      "input": {
+        "a": -756,
+        "b": 291
+      },
+      "expected": -465
+    },
+    {
+      "id": "arithmetic-1--",
+      "expression": "a-b",
+      "input": {
+        "a": -756,
+        "b": 291
+      },
+      "expected": -1047
+    },
+    {
+      "id": "arithmetic-1-*",
+      "expression": "a*b",
+      "input": {
+        "a": -756,
+        "b": 291
+      },
+      "expected": -219996
+    },
+    {
+      "id": "arithmetic-1-=",
+      "expression": "a=b",
+      "input": {
+        "a": -756,
+        "b": 291
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-1-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -756,
+        "b": 291
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-1-<",
+      "expression": "a<b",
+      "input": {
+        "a": -756,
+        "b": 291
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-1->",
+      "expression": "a>b",
+      "input": {
+        "a": -756,
+        "b": 291
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-2-+",
+      "expression": "a+b",
+      "input": {
+        "a": -954,
+        "b": 426
+      },
+      "expected": -528
+    },
+    {
+      "id": "arithmetic-2--",
+      "expression": "a-b",
+      "input": {
+        "a": -954,
+        "b": 426
+      },
+      "expected": -1380
+    },
+    {
+      "id": "arithmetic-2-*",
+      "expression": "a*b",
+      "input": {
+        "a": -954,
+        "b": 426
+      },
+      "expected": -406404
+    },
+    {
+      "id": "arithmetic-2-=",
+      "expression": "a=b",
+      "input": {
+        "a": -954,
+        "b": 426
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-2-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -954,
+        "b": 426
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-2-<",
+      "expression": "a<b",
+      "input": {
+        "a": -954,
+        "b": 426
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-2->",
+      "expression": "a>b",
+      "input": {
+        "a": -954,
+        "b": 426
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-3-+",
+      "expression": "a+b",
+      "input": {
+        "a": -883,
+        "b": -761
+      },
+      "expected": -1644
+    },
+    {
+      "id": "arithmetic-3--",
+      "expression": "a-b",
+      "input": {
+        "a": -883,
+        "b": -761
+      },
+      "expected": -122
+    },
+    {
+      "id": "arithmetic-3-*",
+      "expression": "a*b",
+      "input": {
+        "a": -883,
+        "b": -761
+      },
+      "expected": 671963
+    },
+    {
+      "id": "arithmetic-3-=",
+      "expression": "a=b",
+      "input": {
+        "a": -883,
+        "b": -761
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-3-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -883,
+        "b": -761
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-3-<",
+      "expression": "a<b",
+      "input": {
+        "a": -883,
+        "b": -761
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-3->",
+      "expression": "a>b",
+      "input": {
+        "a": -883,
+        "b": -761
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-4-+",
+      "expression": "a+b",
+      "input": {
+        "a": -546,
+        "b": -607
+      },
+      "expected": -1153
+    },
+    {
+      "id": "arithmetic-4--",
+      "expression": "a-b",
+      "input": {
+        "a": -546,
+        "b": -607
+      },
+      "expected": 61
+    },
+    {
+      "id": "arithmetic-4-*",
+      "expression": "a*b",
+      "input": {
+        "a": -546,
+        "b": -607
+      },
+      "expected": 331422
+    },
+    {
+      "id": "arithmetic-4-=",
+      "expression": "a=b",
+      "input": {
+        "a": -546,
+        "b": -607
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-4-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -546,
+        "b": -607
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-4-<",
+      "expression": "a<b",
+      "input": {
+        "a": -546,
+        "b": -607
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-4->",
+      "expression": "a>b",
+      "input": {
+        "a": -546,
+        "b": -607
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-5-+",
+      "expression": "a+b",
+      "input": {
+        "a": -558,
+        "b": 546
+      },
+      "expected": -12
+    },
+    {
+      "id": "arithmetic-5--",
+      "expression": "a-b",
+      "input": {
+        "a": -558,
+        "b": 546
+      },
+      "expected": -1104
+    },
+    {
+      "id": "arithmetic-5-*",
+      "expression": "a*b",
+      "input": {
+        "a": -558,
+        "b": 546
+      },
+      "expected": -304668
+    },
+    {
+      "id": "arithmetic-5-=",
+      "expression": "a=b",
+      "input": {
+        "a": -558,
+        "b": 546
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-5-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -558,
+        "b": 546
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-5-<",
+      "expression": "a<b",
+      "input": {
+        "a": -558,
+        "b": 546
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-5->",
+      "expression": "a>b",
+      "input": {
+        "a": -558,
+        "b": 546
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-6-+",
+      "expression": "a+b",
+      "input": {
+        "a": 128,
+        "b": 158
+      },
+      "expected": 286
+    },
+    {
+      "id": "arithmetic-6--",
+      "expression": "a-b",
+      "input": {
+        "a": 128,
+        "b": 158
+      },
+      "expected": -30
+    },
+    {
+      "id": "arithmetic-6-*",
+      "expression": "a*b",
+      "input": {
+        "a": 128,
+        "b": 158
+      },
+      "expected": 20224
+    },
+    {
+      "id": "arithmetic-6-=",
+      "expression": "a=b",
+      "input": {
+        "a": 128,
+        "b": 158
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-6-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 128,
+        "b": 158
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-6-<",
+      "expression": "a<b",
+      "input": {
+        "a": 128,
+        "b": 158
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-6->",
+      "expression": "a>b",
+      "input": {
+        "a": 128,
+        "b": 158
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-7-+",
+      "expression": "a+b",
+      "input": {
+        "a": 416,
+        "b": -296
+      },
+      "expected": 120
+    },
+    {
+      "id": "arithmetic-7--",
+      "expression": "a-b",
+      "input": {
+        "a": 416,
+        "b": -296
+      },
+      "expected": 712
+    },
+    {
+      "id": "arithmetic-7-*",
+      "expression": "a*b",
+      "input": {
+        "a": 416,
+        "b": -296
+      },
+      "expected": -123136
+    },
+    {
+      "id": "arithmetic-7-=",
+      "expression": "a=b",
+      "input": {
+        "a": 416,
+        "b": -296
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-7-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 416,
+        "b": -296
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-7-<",
+      "expression": "a<b",
+      "input": {
+        "a": 416,
+        "b": -296
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-7->",
+      "expression": "a>b",
+      "input": {
+        "a": 416,
+        "b": -296
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-8-+",
+      "expression": "a+b",
+      "input": {
+        "a": 87,
+        "b": -28
+      },
+      "expected": 59
+    },
+    {
+      "id": "arithmetic-8--",
+      "expression": "a-b",
+      "input": {
+        "a": 87,
+        "b": -28
+      },
+      "expected": 115
+    },
+    {
+      "id": "arithmetic-8-*",
+      "expression": "a*b",
+      "input": {
+        "a": 87,
+        "b": -28
+      },
+      "expected": -2436
+    },
+    {
+      "id": "arithmetic-8-=",
+      "expression": "a=b",
+      "input": {
+        "a": 87,
+        "b": -28
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-8-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 87,
+        "b": -28
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-8-<",
+      "expression": "a<b",
+      "input": {
+        "a": 87,
+        "b": -28
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-8->",
+      "expression": "a>b",
+      "input": {
+        "a": 87,
+        "b": -28
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-9-+",
+      "expression": "a+b",
+      "input": {
+        "a": 129,
+        "b": -180
+      },
+      "expected": -51
+    },
+    {
+      "id": "arithmetic-9--",
+      "expression": "a-b",
+      "input": {
+        "a": 129,
+        "b": -180
+      },
+      "expected": 309
+    },
+    {
+      "id": "arithmetic-9-*",
+      "expression": "a*b",
+      "input": {
+        "a": 129,
+        "b": -180
+      },
+      "expected": -23220
+    },
+    {
+      "id": "arithmetic-9-=",
+      "expression": "a=b",
+      "input": {
+        "a": 129,
+        "b": -180
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-9-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 129,
+        "b": -180
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-9-<",
+      "expression": "a<b",
+      "input": {
+        "a": 129,
+        "b": -180
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-9->",
+      "expression": "a>b",
+      "input": {
+        "a": 129,
+        "b": -180
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-10-+",
+      "expression": "a+b",
+      "input": {
+        "a": 259,
+        "b": -99
+      },
+      "expected": 160
+    },
+    {
+      "id": "arithmetic-10--",
+      "expression": "a-b",
+      "input": {
+        "a": 259,
+        "b": -99
+      },
+      "expected": 358
+    },
+    {
+      "id": "arithmetic-10-*",
+      "expression": "a*b",
+      "input": {
+        "a": 259,
+        "b": -99
+      },
+      "expected": -25641
+    },
+    {
+      "id": "arithmetic-10-=",
+      "expression": "a=b",
+      "input": {
+        "a": 259,
+        "b": -99
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-10-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 259,
+        "b": -99
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-10-<",
+      "expression": "a<b",
+      "input": {
+        "a": 259,
+        "b": -99
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-10->",
+      "expression": "a>b",
+      "input": {
+        "a": 259,
+        "b": -99
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-11-+",
+      "expression": "a+b",
+      "input": {
+        "a": -4,
+        "b": -580
+      },
+      "expected": -584
+    },
+    {
+      "id": "arithmetic-11--",
+      "expression": "a-b",
+      "input": {
+        "a": -4,
+        "b": -580
+      },
+      "expected": 576
+    },
+    {
+      "id": "arithmetic-11-*",
+      "expression": "a*b",
+      "input": {
+        "a": -4,
+        "b": -580
+      },
+      "expected": 2320
+    },
+    {
+      "id": "arithmetic-11-=",
+      "expression": "a=b",
+      "input": {
+        "a": -4,
+        "b": -580
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-11-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -4,
+        "b": -580
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-11-<",
+      "expression": "a<b",
+      "input": {
+        "a": -4,
+        "b": -580
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-11->",
+      "expression": "a>b",
+      "input": {
+        "a": -4,
+        "b": -580
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-12-+",
+      "expression": "a+b",
+      "input": {
+        "a": -598,
+        "b": -250
+      },
+      "expected": -848
+    },
+    {
+      "id": "arithmetic-12--",
+      "expression": "a-b",
+      "input": {
+        "a": -598,
+        "b": -250
+      },
+      "expected": -348
+    },
+    {
+      "id": "arithmetic-12-*",
+      "expression": "a*b",
+      "input": {
+        "a": -598,
+        "b": -250
+      },
+      "expected": 149500
+    },
+    {
+      "id": "arithmetic-12-=",
+      "expression": "a=b",
+      "input": {
+        "a": -598,
+        "b": -250
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-12-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -598,
+        "b": -250
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-12-<",
+      "expression": "a<b",
+      "input": {
+        "a": -598,
+        "b": -250
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-12->",
+      "expression": "a>b",
+      "input": {
+        "a": -598,
+        "b": -250
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-13-+",
+      "expression": "a+b",
+      "input": {
+        "a": 474,
+        "b": -226
+      },
+      "expected": 248
+    },
+    {
+      "id": "arithmetic-13--",
+      "expression": "a-b",
+      "input": {
+        "a": 474,
+        "b": -226
+      },
+      "expected": 700
+    },
+    {
+      "id": "arithmetic-13-*",
+      "expression": "a*b",
+      "input": {
+        "a": 474,
+        "b": -226
+      },
+      "expected": -107124
+    },
+    {
+      "id": "arithmetic-13-=",
+      "expression": "a=b",
+      "input": {
+        "a": 474,
+        "b": -226
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-13-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 474,
+        "b": -226
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-13-<",
+      "expression": "a<b",
+      "input": {
+        "a": 474,
+        "b": -226
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-13->",
+      "expression": "a>b",
+      "input": {
+        "a": 474,
+        "b": -226
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-14-+",
+      "expression": "a+b",
+      "input": {
+        "a": -201,
+        "b": -831
+      },
+      "expected": -1032
+    },
+    {
+      "id": "arithmetic-14--",
+      "expression": "a-b",
+      "input": {
+        "a": -201,
+        "b": -831
+      },
+      "expected": 630
+    },
+    {
+      "id": "arithmetic-14-*",
+      "expression": "a*b",
+      "input": {
+        "a": -201,
+        "b": -831
+      },
+      "expected": 167031
+    },
+    {
+      "id": "arithmetic-14-=",
+      "expression": "a=b",
+      "input": {
+        "a": -201,
+        "b": -831
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-14-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -201,
+        "b": -831
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-14-<",
+      "expression": "a<b",
+      "input": {
+        "a": -201,
+        "b": -831
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-14->",
+      "expression": "a>b",
+      "input": {
+        "a": -201,
+        "b": -831
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-15-+",
+      "expression": "a+b",
+      "input": {
+        "a": -248,
+        "b": -894
+      },
+      "expected": -1142
+    },
+    {
+      "id": "arithmetic-15--",
+      "expression": "a-b",
+      "input": {
+        "a": -248,
+        "b": -894
+      },
+      "expected": 646
+    },
+    {
+      "id": "arithmetic-15-*",
+      "expression": "a*b",
+      "input": {
+        "a": -248,
+        "b": -894
+      },
+      "expected": 221712
+    },
+    {
+      "id": "arithmetic-15-=",
+      "expression": "a=b",
+      "input": {
+        "a": -248,
+        "b": -894
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-15-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -248,
+        "b": -894
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-15-<",
+      "expression": "a<b",
+      "input": {
+        "a": -248,
+        "b": -894
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-15->",
+      "expression": "a>b",
+      "input": {
+        "a": -248,
+        "b": -894
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-16-+",
+      "expression": "a+b",
+      "input": {
+        "a": 574,
+        "b": -413
+      },
+      "expected": 161
+    },
+    {
+      "id": "arithmetic-16--",
+      "expression": "a-b",
+      "input": {
+        "a": 574,
+        "b": -413
+      },
+      "expected": 987
+    },
+    {
+      "id": "arithmetic-16-*",
+      "expression": "a*b",
+      "input": {
+        "a": 574,
+        "b": -413
+      },
+      "expected": -237062
+    },
+    {
+      "id": "arithmetic-16-=",
+      "expression": "a=b",
+      "input": {
+        "a": 574,
+        "b": -413
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-16-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 574,
+        "b": -413
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-16-<",
+      "expression": "a<b",
+      "input": {
+        "a": 574,
+        "b": -413
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-16->",
+      "expression": "a>b",
+      "input": {
+        "a": 574,
+        "b": -413
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-17-+",
+      "expression": "a+b",
+      "input": {
+        "a": 921,
+        "b": -597
+      },
+      "expected": 324
+    },
+    {
+      "id": "arithmetic-17--",
+      "expression": "a-b",
+      "input": {
+        "a": 921,
+        "b": -597
+      },
+      "expected": 1518
+    },
+    {
+      "id": "arithmetic-17-*",
+      "expression": "a*b",
+      "input": {
+        "a": 921,
+        "b": -597
+      },
+      "expected": -549837
+    },
+    {
+      "id": "arithmetic-17-=",
+      "expression": "a=b",
+      "input": {
+        "a": 921,
+        "b": -597
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-17-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 921,
+        "b": -597
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-17-<",
+      "expression": "a<b",
+      "input": {
+        "a": 921,
+        "b": -597
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-17->",
+      "expression": "a>b",
+      "input": {
+        "a": 921,
+        "b": -597
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-18-+",
+      "expression": "a+b",
+      "input": {
+        "a": 781,
+        "b": 975
+      },
+      "expected": 1756
+    },
+    {
+      "id": "arithmetic-18--",
+      "expression": "a-b",
+      "input": {
+        "a": 781,
+        "b": 975
+      },
+      "expected": -194
+    },
+    {
+      "id": "arithmetic-18-*",
+      "expression": "a*b",
+      "input": {
+        "a": 781,
+        "b": 975
+      },
+      "expected": 761475
+    },
+    {
+      "id": "arithmetic-18-=",
+      "expression": "a=b",
+      "input": {
+        "a": 781,
+        "b": 975
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-18-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 781,
+        "b": 975
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-18-<",
+      "expression": "a<b",
+      "input": {
+        "a": 781,
+        "b": 975
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-18->",
+      "expression": "a>b",
+      "input": {
+        "a": 781,
+        "b": 975
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-19-+",
+      "expression": "a+b",
+      "input": {
+        "a": 537,
+        "b": 272
+      },
+      "expected": 809
+    },
+    {
+      "id": "arithmetic-19--",
+      "expression": "a-b",
+      "input": {
+        "a": 537,
+        "b": 272
+      },
+      "expected": 265
+    },
+    {
+      "id": "arithmetic-19-*",
+      "expression": "a*b",
+      "input": {
+        "a": 537,
+        "b": 272
+      },
+      "expected": 146064
+    },
+    {
+      "id": "arithmetic-19-=",
+      "expression": "a=b",
+      "input": {
+        "a": 537,
+        "b": 272
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-19-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 537,
+        "b": 272
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-19-<",
+      "expression": "a<b",
+      "input": {
+        "a": 537,
+        "b": 272
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-19->",
+      "expression": "a>b",
+      "input": {
+        "a": 537,
+        "b": 272
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-20-+",
+      "expression": "a+b",
+      "input": {
+        "a": -671,
+        "b": 925
+      },
+      "expected": 254
+    },
+    {
+      "id": "arithmetic-20--",
+      "expression": "a-b",
+      "input": {
+        "a": -671,
+        "b": 925
+      },
+      "expected": -1596
+    },
+    {
+      "id": "arithmetic-20-*",
+      "expression": "a*b",
+      "input": {
+        "a": -671,
+        "b": 925
+      },
+      "expected": -620675
+    },
+    {
+      "id": "arithmetic-20-=",
+      "expression": "a=b",
+      "input": {
+        "a": -671,
+        "b": 925
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-20-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -671,
+        "b": 925
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-20-<",
+      "expression": "a<b",
+      "input": {
+        "a": -671,
+        "b": 925
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-20->",
+      "expression": "a>b",
+      "input": {
+        "a": -671,
+        "b": 925
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-21-+",
+      "expression": "a+b",
+      "input": {
+        "a": 6,
+        "b": 349
+      },
+      "expected": 355
+    },
+    {
+      "id": "arithmetic-21--",
+      "expression": "a-b",
+      "input": {
+        "a": 6,
+        "b": 349
+      },
+      "expected": -343
+    },
+    {
+      "id": "arithmetic-21-*",
+      "expression": "a*b",
+      "input": {
+        "a": 6,
+        "b": 349
+      },
+      "expected": 2094
+    },
+    {
+      "id": "arithmetic-21-=",
+      "expression": "a=b",
+      "input": {
+        "a": 6,
+        "b": 349
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-21-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 6,
+        "b": 349
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-21-<",
+      "expression": "a<b",
+      "input": {
+        "a": 6,
+        "b": 349
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-21->",
+      "expression": "a>b",
+      "input": {
+        "a": 6,
+        "b": 349
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-22-+",
+      "expression": "a+b",
+      "input": {
+        "a": 563,
+        "b": 23
+      },
+      "expected": 586
+    },
+    {
+      "id": "arithmetic-22--",
+      "expression": "a-b",
+      "input": {
+        "a": 563,
+        "b": 23
+      },
+      "expected": 540
+    },
+    {
+      "id": "arithmetic-22-*",
+      "expression": "a*b",
+      "input": {
+        "a": 563,
+        "b": 23
+      },
+      "expected": 12949
+    },
+    {
+      "id": "arithmetic-22-=",
+      "expression": "a=b",
+      "input": {
+        "a": 563,
+        "b": 23
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-22-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 563,
+        "b": 23
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-22-<",
+      "expression": "a<b",
+      "input": {
+        "a": 563,
+        "b": 23
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-22->",
+      "expression": "a>b",
+      "input": {
+        "a": 563,
+        "b": 23
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-23-+",
+      "expression": "a+b",
+      "input": {
+        "a": -509,
+        "b": 834
+      },
+      "expected": 325
+    },
+    {
+      "id": "arithmetic-23--",
+      "expression": "a-b",
+      "input": {
+        "a": -509,
+        "b": 834
+      },
+      "expected": -1343
+    },
+    {
+      "id": "arithmetic-23-*",
+      "expression": "a*b",
+      "input": {
+        "a": -509,
+        "b": 834
+      },
+      "expected": -424506
+    },
+    {
+      "id": "arithmetic-23-=",
+      "expression": "a=b",
+      "input": {
+        "a": -509,
+        "b": 834
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-23-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -509,
+        "b": 834
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-23-<",
+      "expression": "a<b",
+      "input": {
+        "a": -509,
+        "b": 834
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-23->",
+      "expression": "a>b",
+      "input": {
+        "a": -509,
+        "b": 834
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-24-+",
+      "expression": "a+b",
+      "input": {
+        "a": -944,
+        "b": -272
+      },
+      "expected": -1216
+    },
+    {
+      "id": "arithmetic-24--",
+      "expression": "a-b",
+      "input": {
+        "a": -944,
+        "b": -272
+      },
+      "expected": -672
+    },
+    {
+      "id": "arithmetic-24-*",
+      "expression": "a*b",
+      "input": {
+        "a": -944,
+        "b": -272
+      },
+      "expected": 256768
+    },
+    {
+      "id": "arithmetic-24-=",
+      "expression": "a=b",
+      "input": {
+        "a": -944,
+        "b": -272
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-24-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -944,
+        "b": -272
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-24-<",
+      "expression": "a<b",
+      "input": {
+        "a": -944,
+        "b": -272
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-24->",
+      "expression": "a>b",
+      "input": {
+        "a": -944,
+        "b": -272
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-25-+",
+      "expression": "a+b",
+      "input": {
+        "a": -62,
+        "b": -947
+      },
+      "expected": -1009
+    },
+    {
+      "id": "arithmetic-25--",
+      "expression": "a-b",
+      "input": {
+        "a": -62,
+        "b": -947
+      },
+      "expected": 885
+    },
+    {
+      "id": "arithmetic-25-*",
+      "expression": "a*b",
+      "input": {
+        "a": -62,
+        "b": -947
+      },
+      "expected": 58714
+    },
+    {
+      "id": "arithmetic-25-=",
+      "expression": "a=b",
+      "input": {
+        "a": -62,
+        "b": -947
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-25-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -62,
+        "b": -947
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-25-<",
+      "expression": "a<b",
+      "input": {
+        "a": -62,
+        "b": -947
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-25->",
+      "expression": "a>b",
+      "input": {
+        "a": -62,
+        "b": -947
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-26-+",
+      "expression": "a+b",
+      "input": {
+        "a": -358,
+        "b": -463
+      },
+      "expected": -821
+    },
+    {
+      "id": "arithmetic-26--",
+      "expression": "a-b",
+      "input": {
+        "a": -358,
+        "b": -463
+      },
+      "expected": 105
+    },
+    {
+      "id": "arithmetic-26-*",
+      "expression": "a*b",
+      "input": {
+        "a": -358,
+        "b": -463
+      },
+      "expected": 165754
+    },
+    {
+      "id": "arithmetic-26-=",
+      "expression": "a=b",
+      "input": {
+        "a": -358,
+        "b": -463
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-26-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -358,
+        "b": -463
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-26-<",
+      "expression": "a<b",
+      "input": {
+        "a": -358,
+        "b": -463
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-26->",
+      "expression": "a>b",
+      "input": {
+        "a": -358,
+        "b": -463
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-27-+",
+      "expression": "a+b",
+      "input": {
+        "a": -241,
+        "b": 706
+      },
+      "expected": 465
+    },
+    {
+      "id": "arithmetic-27--",
+      "expression": "a-b",
+      "input": {
+        "a": -241,
+        "b": 706
+      },
+      "expected": -947
+    },
+    {
+      "id": "arithmetic-27-*",
+      "expression": "a*b",
+      "input": {
+        "a": -241,
+        "b": 706
+      },
+      "expected": -170146
+    },
+    {
+      "id": "arithmetic-27-=",
+      "expression": "a=b",
+      "input": {
+        "a": -241,
+        "b": 706
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-27-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -241,
+        "b": 706
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-27-<",
+      "expression": "a<b",
+      "input": {
+        "a": -241,
+        "b": 706
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-27->",
+      "expression": "a>b",
+      "input": {
+        "a": -241,
+        "b": 706
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-28-+",
+      "expression": "a+b",
+      "input": {
+        "a": 556,
+        "b": -292
+      },
+      "expected": 264
+    },
+    {
+      "id": "arithmetic-28--",
+      "expression": "a-b",
+      "input": {
+        "a": 556,
+        "b": -292
+      },
+      "expected": 848
+    },
+    {
+      "id": "arithmetic-28-*",
+      "expression": "a*b",
+      "input": {
+        "a": 556,
+        "b": -292
+      },
+      "expected": -162352
+    },
+    {
+      "id": "arithmetic-28-=",
+      "expression": "a=b",
+      "input": {
+        "a": 556,
+        "b": -292
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-28-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 556,
+        "b": -292
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-28-<",
+      "expression": "a<b",
+      "input": {
+        "a": 556,
+        "b": -292
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-28->",
+      "expression": "a>b",
+      "input": {
+        "a": 556,
+        "b": -292
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-29-+",
+      "expression": "a+b",
+      "input": {
+        "a": -759,
+        "b": -586
+      },
+      "expected": -1345
+    },
+    {
+      "id": "arithmetic-29--",
+      "expression": "a-b",
+      "input": {
+        "a": -759,
+        "b": -586
+      },
+      "expected": -173
+    },
+    {
+      "id": "arithmetic-29-*",
+      "expression": "a*b",
+      "input": {
+        "a": -759,
+        "b": -586
+      },
+      "expected": 444774
+    },
+    {
+      "id": "arithmetic-29-=",
+      "expression": "a=b",
+      "input": {
+        "a": -759,
+        "b": -586
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-29-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -759,
+        "b": -586
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-29-<",
+      "expression": "a<b",
+      "input": {
+        "a": -759,
+        "b": -586
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-29->",
+      "expression": "a>b",
+      "input": {
+        "a": -759,
+        "b": -586
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-30-+",
+      "expression": "a+b",
+      "input": {
+        "a": -807,
+        "b": -779
+      },
+      "expected": -1586
+    },
+    {
+      "id": "arithmetic-30--",
+      "expression": "a-b",
+      "input": {
+        "a": -807,
+        "b": -779
+      },
+      "expected": -28
+    },
+    {
+      "id": "arithmetic-30-*",
+      "expression": "a*b",
+      "input": {
+        "a": -807,
+        "b": -779
+      },
+      "expected": 628653
+    },
+    {
+      "id": "arithmetic-30-=",
+      "expression": "a=b",
+      "input": {
+        "a": -807,
+        "b": -779
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-30-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -807,
+        "b": -779
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-30-<",
+      "expression": "a<b",
+      "input": {
+        "a": -807,
+        "b": -779
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-30->",
+      "expression": "a>b",
+      "input": {
+        "a": -807,
+        "b": -779
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-31-+",
+      "expression": "a+b",
+      "input": {
+        "a": 531,
+        "b": -905
+      },
+      "expected": -374
+    },
+    {
+      "id": "arithmetic-31--",
+      "expression": "a-b",
+      "input": {
+        "a": 531,
+        "b": -905
+      },
+      "expected": 1436
+    },
+    {
+      "id": "arithmetic-31-*",
+      "expression": "a*b",
+      "input": {
+        "a": 531,
+        "b": -905
+      },
+      "expected": -480555
+    },
+    {
+      "id": "arithmetic-31-=",
+      "expression": "a=b",
+      "input": {
+        "a": 531,
+        "b": -905
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-31-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 531,
+        "b": -905
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-31-<",
+      "expression": "a<b",
+      "input": {
+        "a": 531,
+        "b": -905
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-31->",
+      "expression": "a>b",
+      "input": {
+        "a": 531,
+        "b": -905
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-32-+",
+      "expression": "a+b",
+      "input": {
+        "a": 825,
+        "b": 641
+      },
+      "expected": 1466
+    },
+    {
+      "id": "arithmetic-32--",
+      "expression": "a-b",
+      "input": {
+        "a": 825,
+        "b": 641
+      },
+      "expected": 184
+    },
+    {
+      "id": "arithmetic-32-*",
+      "expression": "a*b",
+      "input": {
+        "a": 825,
+        "b": 641
+      },
+      "expected": 528825
+    },
+    {
+      "id": "arithmetic-32-=",
+      "expression": "a=b",
+      "input": {
+        "a": 825,
+        "b": 641
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-32-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 825,
+        "b": 641
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-32-<",
+      "expression": "a<b",
+      "input": {
+        "a": 825,
+        "b": 641
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-32->",
+      "expression": "a>b",
+      "input": {
+        "a": 825,
+        "b": 641
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-33-+",
+      "expression": "a+b",
+      "input": {
+        "a": 441,
+        "b": 819
+      },
+      "expected": 1260
+    },
+    {
+      "id": "arithmetic-33--",
+      "expression": "a-b",
+      "input": {
+        "a": 441,
+        "b": 819
+      },
+      "expected": -378
+    },
+    {
+      "id": "arithmetic-33-*",
+      "expression": "a*b",
+      "input": {
+        "a": 441,
+        "b": 819
+      },
+      "expected": 361179
+    },
+    {
+      "id": "arithmetic-33-=",
+      "expression": "a=b",
+      "input": {
+        "a": 441,
+        "b": 819
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-33-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 441,
+        "b": 819
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-33-<",
+      "expression": "a<b",
+      "input": {
+        "a": 441,
+        "b": 819
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-33->",
+      "expression": "a>b",
+      "input": {
+        "a": 441,
+        "b": 819
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-34-+",
+      "expression": "a+b",
+      "input": {
+        "a": -127,
+        "b": -550
+      },
+      "expected": -677
+    },
+    {
+      "id": "arithmetic-34--",
+      "expression": "a-b",
+      "input": {
+        "a": -127,
+        "b": -550
+      },
+      "expected": 423
+    },
+    {
+      "id": "arithmetic-34-*",
+      "expression": "a*b",
+      "input": {
+        "a": -127,
+        "b": -550
+      },
+      "expected": 69850
+    },
+    {
+      "id": "arithmetic-34-=",
+      "expression": "a=b",
+      "input": {
+        "a": -127,
+        "b": -550
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-34-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -127,
+        "b": -550
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-34-<",
+      "expression": "a<b",
+      "input": {
+        "a": -127,
+        "b": -550
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-34->",
+      "expression": "a>b",
+      "input": {
+        "a": -127,
+        "b": -550
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-35-+",
+      "expression": "a+b",
+      "input": {
+        "a": -935,
+        "b": -175
+      },
+      "expected": -1110
+    },
+    {
+      "id": "arithmetic-35--",
+      "expression": "a-b",
+      "input": {
+        "a": -935,
+        "b": -175
+      },
+      "expected": -760
+    },
+    {
+      "id": "arithmetic-35-*",
+      "expression": "a*b",
+      "input": {
+        "a": -935,
+        "b": -175
+      },
+      "expected": 163625
+    },
+    {
+      "id": "arithmetic-35-=",
+      "expression": "a=b",
+      "input": {
+        "a": -935,
+        "b": -175
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-35-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -935,
+        "b": -175
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-35-<",
+      "expression": "a<b",
+      "input": {
+        "a": -935,
+        "b": -175
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-35->",
+      "expression": "a>b",
+      "input": {
+        "a": -935,
+        "b": -175
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-36-+",
+      "expression": "a+b",
+      "input": {
+        "a": 861,
+        "b": 40
+      },
+      "expected": 901
+    },
+    {
+      "id": "arithmetic-36--",
+      "expression": "a-b",
+      "input": {
+        "a": 861,
+        "b": 40
+      },
+      "expected": 821
+    },
+    {
+      "id": "arithmetic-36-*",
+      "expression": "a*b",
+      "input": {
+        "a": 861,
+        "b": 40
+      },
+      "expected": 34440
+    },
+    {
+      "id": "arithmetic-36-=",
+      "expression": "a=b",
+      "input": {
+        "a": 861,
+        "b": 40
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-36-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 861,
+        "b": 40
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-36-<",
+      "expression": "a<b",
+      "input": {
+        "a": 861,
+        "b": 40
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-36->",
+      "expression": "a>b",
+      "input": {
+        "a": 861,
+        "b": 40
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-37-+",
+      "expression": "a+b",
+      "input": {
+        "a": -290,
+        "b": -663
+      },
+      "expected": -953
+    },
+    {
+      "id": "arithmetic-37--",
+      "expression": "a-b",
+      "input": {
+        "a": -290,
+        "b": -663
+      },
+      "expected": 373
+    },
+    {
+      "id": "arithmetic-37-*",
+      "expression": "a*b",
+      "input": {
+        "a": -290,
+        "b": -663
+      },
+      "expected": 192270
+    },
+    {
+      "id": "arithmetic-37-=",
+      "expression": "a=b",
+      "input": {
+        "a": -290,
+        "b": -663
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-37-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -290,
+        "b": -663
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-37-<",
+      "expression": "a<b",
+      "input": {
+        "a": -290,
+        "b": -663
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-37->",
+      "expression": "a>b",
+      "input": {
+        "a": -290,
+        "b": -663
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-38-+",
+      "expression": "a+b",
+      "input": {
+        "a": -56,
+        "b": -395
+      },
+      "expected": -451
+    },
+    {
+      "id": "arithmetic-38--",
+      "expression": "a-b",
+      "input": {
+        "a": -56,
+        "b": -395
+      },
+      "expected": 339
+    },
+    {
+      "id": "arithmetic-38-*",
+      "expression": "a*b",
+      "input": {
+        "a": -56,
+        "b": -395
+      },
+      "expected": 22120
+    },
+    {
+      "id": "arithmetic-38-=",
+      "expression": "a=b",
+      "input": {
+        "a": -56,
+        "b": -395
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-38-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -56,
+        "b": -395
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-38-<",
+      "expression": "a<b",
+      "input": {
+        "a": -56,
+        "b": -395
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-38->",
+      "expression": "a>b",
+      "input": {
+        "a": -56,
+        "b": -395
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-39-+",
+      "expression": "a+b",
+      "input": {
+        "a": 632,
+        "b": 510
+      },
+      "expected": 1142
+    },
+    {
+      "id": "arithmetic-39--",
+      "expression": "a-b",
+      "input": {
+        "a": 632,
+        "b": 510
+      },
+      "expected": 122
+    },
+    {
+      "id": "arithmetic-39-*",
+      "expression": "a*b",
+      "input": {
+        "a": 632,
+        "b": 510
+      },
+      "expected": 322320
+    },
+    {
+      "id": "arithmetic-39-=",
+      "expression": "a=b",
+      "input": {
+        "a": 632,
+        "b": 510
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-39-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 632,
+        "b": 510
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-39-<",
+      "expression": "a<b",
+      "input": {
+        "a": 632,
+        "b": 510
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-39->",
+      "expression": "a>b",
+      "input": {
+        "a": 632,
+        "b": 510
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-40-+",
+      "expression": "a+b",
+      "input": {
+        "a": 580,
+        "b": -923
+      },
+      "expected": -343
+    },
+    {
+      "id": "arithmetic-40--",
+      "expression": "a-b",
+      "input": {
+        "a": 580,
+        "b": -923
+      },
+      "expected": 1503
+    },
+    {
+      "id": "arithmetic-40-*",
+      "expression": "a*b",
+      "input": {
+        "a": 580,
+        "b": -923
+      },
+      "expected": -535340
+    },
+    {
+      "id": "arithmetic-40-=",
+      "expression": "a=b",
+      "input": {
+        "a": 580,
+        "b": -923
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-40-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 580,
+        "b": -923
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-40-<",
+      "expression": "a<b",
+      "input": {
+        "a": 580,
+        "b": -923
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-40->",
+      "expression": "a>b",
+      "input": {
+        "a": 580,
+        "b": -923
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-41-+",
+      "expression": "a+b",
+      "input": {
+        "a": -436,
+        "b": -621
+      },
+      "expected": -1057
+    },
+    {
+      "id": "arithmetic-41--",
+      "expression": "a-b",
+      "input": {
+        "a": -436,
+        "b": -621
+      },
+      "expected": 185
+    },
+    {
+      "id": "arithmetic-41-*",
+      "expression": "a*b",
+      "input": {
+        "a": -436,
+        "b": -621
+      },
+      "expected": 270756
+    },
+    {
+      "id": "arithmetic-41-=",
+      "expression": "a=b",
+      "input": {
+        "a": -436,
+        "b": -621
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-41-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -436,
+        "b": -621
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-41-<",
+      "expression": "a<b",
+      "input": {
+        "a": -436,
+        "b": -621
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-41->",
+      "expression": "a>b",
+      "input": {
+        "a": -436,
+        "b": -621
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-42-+",
+      "expression": "a+b",
+      "input": {
+        "a": 278,
+        "b": -295
+      },
+      "expected": -17
+    },
+    {
+      "id": "arithmetic-42--",
+      "expression": "a-b",
+      "input": {
+        "a": 278,
+        "b": -295
+      },
+      "expected": 573
+    },
+    {
+      "id": "arithmetic-42-*",
+      "expression": "a*b",
+      "input": {
+        "a": 278,
+        "b": -295
+      },
+      "expected": -82010
+    },
+    {
+      "id": "arithmetic-42-=",
+      "expression": "a=b",
+      "input": {
+        "a": 278,
+        "b": -295
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-42-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 278,
+        "b": -295
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-42-<",
+      "expression": "a<b",
+      "input": {
+        "a": 278,
+        "b": -295
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-42->",
+      "expression": "a>b",
+      "input": {
+        "a": 278,
+        "b": -295
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-43-+",
+      "expression": "a+b",
+      "input": {
+        "a": -564,
+        "b": -230
+      },
+      "expected": -794
+    },
+    {
+      "id": "arithmetic-43--",
+      "expression": "a-b",
+      "input": {
+        "a": -564,
+        "b": -230
+      },
+      "expected": -334
+    },
+    {
+      "id": "arithmetic-43-*",
+      "expression": "a*b",
+      "input": {
+        "a": -564,
+        "b": -230
+      },
+      "expected": 129720
+    },
+    {
+      "id": "arithmetic-43-=",
+      "expression": "a=b",
+      "input": {
+        "a": -564,
+        "b": -230
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-43-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -564,
+        "b": -230
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-43-<",
+      "expression": "a<b",
+      "input": {
+        "a": -564,
+        "b": -230
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-43->",
+      "expression": "a>b",
+      "input": {
+        "a": -564,
+        "b": -230
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-44-+",
+      "expression": "a+b",
+      "input": {
+        "a": -48,
+        "b": -730
+      },
+      "expected": -778
+    },
+    {
+      "id": "arithmetic-44--",
+      "expression": "a-b",
+      "input": {
+        "a": -48,
+        "b": -730
+      },
+      "expected": 682
+    },
+    {
+      "id": "arithmetic-44-*",
+      "expression": "a*b",
+      "input": {
+        "a": -48,
+        "b": -730
+      },
+      "expected": 35040
+    },
+    {
+      "id": "arithmetic-44-=",
+      "expression": "a=b",
+      "input": {
+        "a": -48,
+        "b": -730
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-44-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -48,
+        "b": -730
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-44-<",
+      "expression": "a<b",
+      "input": {
+        "a": -48,
+        "b": -730
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-44->",
+      "expression": "a>b",
+      "input": {
+        "a": -48,
+        "b": -730
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-45-+",
+      "expression": "a+b",
+      "input": {
+        "a": -206,
+        "b": 547
+      },
+      "expected": 341
+    },
+    {
+      "id": "arithmetic-45--",
+      "expression": "a-b",
+      "input": {
+        "a": -206,
+        "b": 547
+      },
+      "expected": -753
+    },
+    {
+      "id": "arithmetic-45-*",
+      "expression": "a*b",
+      "input": {
+        "a": -206,
+        "b": 547
+      },
+      "expected": -112682
+    },
+    {
+      "id": "arithmetic-45-=",
+      "expression": "a=b",
+      "input": {
+        "a": -206,
+        "b": 547
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-45-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -206,
+        "b": 547
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-45-<",
+      "expression": "a<b",
+      "input": {
+        "a": -206,
+        "b": 547
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-45->",
+      "expression": "a>b",
+      "input": {
+        "a": -206,
+        "b": 547
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-46-+",
+      "expression": "a+b",
+      "input": {
+        "a": 74,
+        "b": 590
+      },
+      "expected": 664
+    },
+    {
+      "id": "arithmetic-46--",
+      "expression": "a-b",
+      "input": {
+        "a": 74,
+        "b": 590
+      },
+      "expected": -516
+    },
+    {
+      "id": "arithmetic-46-*",
+      "expression": "a*b",
+      "input": {
+        "a": 74,
+        "b": 590
+      },
+      "expected": 43660
+    },
+    {
+      "id": "arithmetic-46-=",
+      "expression": "a=b",
+      "input": {
+        "a": 74,
+        "b": 590
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-46-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 74,
+        "b": 590
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-46-<",
+      "expression": "a<b",
+      "input": {
+        "a": 74,
+        "b": 590
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-46->",
+      "expression": "a>b",
+      "input": {
+        "a": 74,
+        "b": 590
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-47-+",
+      "expression": "a+b",
+      "input": {
+        "a": -36,
+        "b": 631
+      },
+      "expected": 595
+    },
+    {
+      "id": "arithmetic-47--",
+      "expression": "a-b",
+      "input": {
+        "a": -36,
+        "b": 631
+      },
+      "expected": -667
+    },
+    {
+      "id": "arithmetic-47-*",
+      "expression": "a*b",
+      "input": {
+        "a": -36,
+        "b": 631
+      },
+      "expected": -22716
+    },
+    {
+      "id": "arithmetic-47-=",
+      "expression": "a=b",
+      "input": {
+        "a": -36,
+        "b": 631
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-47-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -36,
+        "b": 631
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-47-<",
+      "expression": "a<b",
+      "input": {
+        "a": -36,
+        "b": 631
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-47->",
+      "expression": "a>b",
+      "input": {
+        "a": -36,
+        "b": 631
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-48-+",
+      "expression": "a+b",
+      "input": {
+        "a": 898,
+        "b": 556
+      },
+      "expected": 1454
+    },
+    {
+      "id": "arithmetic-48--",
+      "expression": "a-b",
+      "input": {
+        "a": 898,
+        "b": 556
+      },
+      "expected": 342
+    },
+    {
+      "id": "arithmetic-48-*",
+      "expression": "a*b",
+      "input": {
+        "a": 898,
+        "b": 556
+      },
+      "expected": 499288
+    },
+    {
+      "id": "arithmetic-48-=",
+      "expression": "a=b",
+      "input": {
+        "a": 898,
+        "b": 556
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-48-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 898,
+        "b": 556
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-48-<",
+      "expression": "a<b",
+      "input": {
+        "a": 898,
+        "b": 556
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-48->",
+      "expression": "a>b",
+      "input": {
+        "a": 898,
+        "b": 556
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-49-+",
+      "expression": "a+b",
+      "input": {
+        "a": 695,
+        "b": 526
+      },
+      "expected": 1221
+    },
+    {
+      "id": "arithmetic-49--",
+      "expression": "a-b",
+      "input": {
+        "a": 695,
+        "b": 526
+      },
+      "expected": 169
+    },
+    {
+      "id": "arithmetic-49-*",
+      "expression": "a*b",
+      "input": {
+        "a": 695,
+        "b": 526
+      },
+      "expected": 365570
+    },
+    {
+      "id": "arithmetic-49-=",
+      "expression": "a=b",
+      "input": {
+        "a": 695,
+        "b": 526
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-49-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 695,
+        "b": 526
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-49-<",
+      "expression": "a<b",
+      "input": {
+        "a": 695,
+        "b": 526
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-49->",
+      "expression": "a>b",
+      "input": {
+        "a": 695,
+        "b": 526
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-50-+",
+      "expression": "a+b",
+      "input": {
+        "a": -554,
+        "b": 32
+      },
+      "expected": -522
+    },
+    {
+      "id": "arithmetic-50--",
+      "expression": "a-b",
+      "input": {
+        "a": -554,
+        "b": 32
+      },
+      "expected": -586
+    },
+    {
+      "id": "arithmetic-50-*",
+      "expression": "a*b",
+      "input": {
+        "a": -554,
+        "b": 32
+      },
+      "expected": -17728
+    },
+    {
+      "id": "arithmetic-50-=",
+      "expression": "a=b",
+      "input": {
+        "a": -554,
+        "b": 32
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-50-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -554,
+        "b": 32
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-50-<",
+      "expression": "a<b",
+      "input": {
+        "a": -554,
+        "b": 32
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-50->",
+      "expression": "a>b",
+      "input": {
+        "a": -554,
+        "b": 32
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-51-+",
+      "expression": "a+b",
+      "input": {
+        "a": 690,
+        "b": 464
+      },
+      "expected": 1154
+    },
+    {
+      "id": "arithmetic-51--",
+      "expression": "a-b",
+      "input": {
+        "a": 690,
+        "b": 464
+      },
+      "expected": 226
+    },
+    {
+      "id": "arithmetic-51-*",
+      "expression": "a*b",
+      "input": {
+        "a": 690,
+        "b": 464
+      },
+      "expected": 320160
+    },
+    {
+      "id": "arithmetic-51-=",
+      "expression": "a=b",
+      "input": {
+        "a": 690,
+        "b": 464
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-51-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 690,
+        "b": 464
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-51-<",
+      "expression": "a<b",
+      "input": {
+        "a": 690,
+        "b": 464
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-51->",
+      "expression": "a>b",
+      "input": {
+        "a": 690,
+        "b": 464
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-52-+",
+      "expression": "a+b",
+      "input": {
+        "a": 81,
+        "b": 282
+      },
+      "expected": 363
+    },
+    {
+      "id": "arithmetic-52--",
+      "expression": "a-b",
+      "input": {
+        "a": 81,
+        "b": 282
+      },
+      "expected": -201
+    },
+    {
+      "id": "arithmetic-52-*",
+      "expression": "a*b",
+      "input": {
+        "a": 81,
+        "b": 282
+      },
+      "expected": 22842
+    },
+    {
+      "id": "arithmetic-52-=",
+      "expression": "a=b",
+      "input": {
+        "a": 81,
+        "b": 282
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-52-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 81,
+        "b": 282
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-52-<",
+      "expression": "a<b",
+      "input": {
+        "a": 81,
+        "b": 282
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-52->",
+      "expression": "a>b",
+      "input": {
+        "a": 81,
+        "b": 282
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-53-+",
+      "expression": "a+b",
+      "input": {
+        "a": -144,
+        "b": -188
+      },
+      "expected": -332
+    },
+    {
+      "id": "arithmetic-53--",
+      "expression": "a-b",
+      "input": {
+        "a": -144,
+        "b": -188
+      },
+      "expected": 44
+    },
+    {
+      "id": "arithmetic-53-*",
+      "expression": "a*b",
+      "input": {
+        "a": -144,
+        "b": -188
+      },
+      "expected": 27072
+    },
+    {
+      "id": "arithmetic-53-=",
+      "expression": "a=b",
+      "input": {
+        "a": -144,
+        "b": -188
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-53-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -144,
+        "b": -188
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-53-<",
+      "expression": "a<b",
+      "input": {
+        "a": -144,
+        "b": -188
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-53->",
+      "expression": "a>b",
+      "input": {
+        "a": -144,
+        "b": -188
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-54-+",
+      "expression": "a+b",
+      "input": {
+        "a": -748,
+        "b": -769
+      },
+      "expected": -1517
+    },
+    {
+      "id": "arithmetic-54--",
+      "expression": "a-b",
+      "input": {
+        "a": -748,
+        "b": -769
+      },
+      "expected": 21
+    },
+    {
+      "id": "arithmetic-54-*",
+      "expression": "a*b",
+      "input": {
+        "a": -748,
+        "b": -769
+      },
+      "expected": 575212
+    },
+    {
+      "id": "arithmetic-54-=",
+      "expression": "a=b",
+      "input": {
+        "a": -748,
+        "b": -769
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-54-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -748,
+        "b": -769
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-54-<",
+      "expression": "a<b",
+      "input": {
+        "a": -748,
+        "b": -769
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-54->",
+      "expression": "a>b",
+      "input": {
+        "a": -748,
+        "b": -769
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-55-+",
+      "expression": "a+b",
+      "input": {
+        "a": -634,
+        "b": -413
+      },
+      "expected": -1047
+    },
+    {
+      "id": "arithmetic-55--",
+      "expression": "a-b",
+      "input": {
+        "a": -634,
+        "b": -413
+      },
+      "expected": -221
+    },
+    {
+      "id": "arithmetic-55-*",
+      "expression": "a*b",
+      "input": {
+        "a": -634,
+        "b": -413
+      },
+      "expected": 261842
+    },
+    {
+      "id": "arithmetic-55-=",
+      "expression": "a=b",
+      "input": {
+        "a": -634,
+        "b": -413
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-55-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -634,
+        "b": -413
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-55-<",
+      "expression": "a<b",
+      "input": {
+        "a": -634,
+        "b": -413
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-55->",
+      "expression": "a>b",
+      "input": {
+        "a": -634,
+        "b": -413
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-56-+",
+      "expression": "a+b",
+      "input": {
+        "a": -24,
+        "b": -429
+      },
+      "expected": -453
+    },
+    {
+      "id": "arithmetic-56--",
+      "expression": "a-b",
+      "input": {
+        "a": -24,
+        "b": -429
+      },
+      "expected": 405
+    },
+    {
+      "id": "arithmetic-56-*",
+      "expression": "a*b",
+      "input": {
+        "a": -24,
+        "b": -429
+      },
+      "expected": 10296
+    },
+    {
+      "id": "arithmetic-56-=",
+      "expression": "a=b",
+      "input": {
+        "a": -24,
+        "b": -429
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-56-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -24,
+        "b": -429
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-56-<",
+      "expression": "a<b",
+      "input": {
+        "a": -24,
+        "b": -429
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-56->",
+      "expression": "a>b",
+      "input": {
+        "a": -24,
+        "b": -429
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-57-+",
+      "expression": "a+b",
+      "input": {
+        "a": 645,
+        "b": -445
+      },
+      "expected": 200
+    },
+    {
+      "id": "arithmetic-57--",
+      "expression": "a-b",
+      "input": {
+        "a": 645,
+        "b": -445
+      },
+      "expected": 1090
+    },
+    {
+      "id": "arithmetic-57-*",
+      "expression": "a*b",
+      "input": {
+        "a": 645,
+        "b": -445
+      },
+      "expected": -287025
+    },
+    {
+      "id": "arithmetic-57-=",
+      "expression": "a=b",
+      "input": {
+        "a": 645,
+        "b": -445
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-57-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 645,
+        "b": -445
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-57-<",
+      "expression": "a<b",
+      "input": {
+        "a": 645,
+        "b": -445
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-57->",
+      "expression": "a>b",
+      "input": {
+        "a": 645,
+        "b": -445
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-58-+",
+      "expression": "a+b",
+      "input": {
+        "a": -271,
+        "b": -472
+      },
+      "expected": -743
+    },
+    {
+      "id": "arithmetic-58--",
+      "expression": "a-b",
+      "input": {
+        "a": -271,
+        "b": -472
+      },
+      "expected": 201
+    },
+    {
+      "id": "arithmetic-58-*",
+      "expression": "a*b",
+      "input": {
+        "a": -271,
+        "b": -472
+      },
+      "expected": 127912
+    },
+    {
+      "id": "arithmetic-58-=",
+      "expression": "a=b",
+      "input": {
+        "a": -271,
+        "b": -472
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-58-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -271,
+        "b": -472
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-58-<",
+      "expression": "a<b",
+      "input": {
+        "a": -271,
+        "b": -472
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-58->",
+      "expression": "a>b",
+      "input": {
+        "a": -271,
+        "b": -472
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-59-+",
+      "expression": "a+b",
+      "input": {
+        "a": -160,
+        "b": 799
+      },
+      "expected": 639
+    },
+    {
+      "id": "arithmetic-59--",
+      "expression": "a-b",
+      "input": {
+        "a": -160,
+        "b": 799
+      },
+      "expected": -959
+    },
+    {
+      "id": "arithmetic-59-*",
+      "expression": "a*b",
+      "input": {
+        "a": -160,
+        "b": 799
+      },
+      "expected": -127840
+    },
+    {
+      "id": "arithmetic-59-=",
+      "expression": "a=b",
+      "input": {
+        "a": -160,
+        "b": 799
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-59-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -160,
+        "b": 799
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-59-<",
+      "expression": "a<b",
+      "input": {
+        "a": -160,
+        "b": 799
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-59->",
+      "expression": "a>b",
+      "input": {
+        "a": -160,
+        "b": 799
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-60-+",
+      "expression": "a+b",
+      "input": {
+        "a": -130,
+        "b": -460
+      },
+      "expected": -590
+    },
+    {
+      "id": "arithmetic-60--",
+      "expression": "a-b",
+      "input": {
+        "a": -130,
+        "b": -460
+      },
+      "expected": 330
+    },
+    {
+      "id": "arithmetic-60-*",
+      "expression": "a*b",
+      "input": {
+        "a": -130,
+        "b": -460
+      },
+      "expected": 59800
+    },
+    {
+      "id": "arithmetic-60-=",
+      "expression": "a=b",
+      "input": {
+        "a": -130,
+        "b": -460
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-60-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -130,
+        "b": -460
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-60-<",
+      "expression": "a<b",
+      "input": {
+        "a": -130,
+        "b": -460
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-60->",
+      "expression": "a>b",
+      "input": {
+        "a": -130,
+        "b": -460
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-61-+",
+      "expression": "a+b",
+      "input": {
+        "a": 574,
+        "b": 904
+      },
+      "expected": 1478
+    },
+    {
+      "id": "arithmetic-61--",
+      "expression": "a-b",
+      "input": {
+        "a": 574,
+        "b": 904
+      },
+      "expected": -330
+    },
+    {
+      "id": "arithmetic-61-*",
+      "expression": "a*b",
+      "input": {
+        "a": 574,
+        "b": 904
+      },
+      "expected": 518896
+    },
+    {
+      "id": "arithmetic-61-=",
+      "expression": "a=b",
+      "input": {
+        "a": 574,
+        "b": 904
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-61-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": 574,
+        "b": 904
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-61-<",
+      "expression": "a<b",
+      "input": {
+        "a": 574,
+        "b": 904
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-61->",
+      "expression": "a>b",
+      "input": {
+        "a": 574,
+        "b": 904
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-62-+",
+      "expression": "a+b",
+      "input": {
+        "a": -261,
+        "b": -766
+      },
+      "expected": -1027
+    },
+    {
+      "id": "arithmetic-62--",
+      "expression": "a-b",
+      "input": {
+        "a": -261,
+        "b": -766
+      },
+      "expected": 505
+    },
+    {
+      "id": "arithmetic-62-*",
+      "expression": "a*b",
+      "input": {
+        "a": -261,
+        "b": -766
+      },
+      "expected": 199926
+    },
+    {
+      "id": "arithmetic-62-=",
+      "expression": "a=b",
+      "input": {
+        "a": -261,
+        "b": -766
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-62-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -261,
+        "b": -766
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-62-<",
+      "expression": "a<b",
+      "input": {
+        "a": -261,
+        "b": -766
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-62->",
+      "expression": "a>b",
+      "input": {
+        "a": -261,
+        "b": -766
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-63-+",
+      "expression": "a+b",
+      "input": {
+        "a": -767,
+        "b": -543
+      },
+      "expected": -1310
+    },
+    {
+      "id": "arithmetic-63--",
+      "expression": "a-b",
+      "input": {
+        "a": -767,
+        "b": -543
+      },
+      "expected": -224
+    },
+    {
+      "id": "arithmetic-63-*",
+      "expression": "a*b",
+      "input": {
+        "a": -767,
+        "b": -543
+      },
+      "expected": 416481
+    },
+    {
+      "id": "arithmetic-63-=",
+      "expression": "a=b",
+      "input": {
+        "a": -767,
+        "b": -543
+      },
+      "expected": false
+    },
+    {
+      "id": "arithmetic-63-!=",
+      "expression": "a!=b",
+      "input": {
+        "a": -767,
+        "b": -543
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-63-<",
+      "expression": "a<b",
+      "input": {
+        "a": -767,
+        "b": -543
+      },
+      "expected": true
+    },
+    {
+      "id": "arithmetic-63->",
+      "expression": "a>b",
+      "input": {
+        "a": -767,
+        "b": -543
+      },
+      "expected": false
+    },
+    {
+      "id": "numeric-identity-0",
+      "expression": "$",
+      "input": 1e-100,
+      "expected": 1e-100
+    },
+    {
+      "id": "numeric-identity-1",
+      "expression": "$",
+      "input": -1e-100,
+      "expected": -1e-100
+    },
+    {
+      "id": "numeric-identity-2",
+      "expression": "$",
+      "input": 0.12345678901234568,
+      "expected": 0.12345678901234568
+    }
+  ]
+}

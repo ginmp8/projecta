@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup>
+  <IsPackable>true</IsPackable><IncludeBuildOutput>false</IncludeBuildOutput><DevelopmentDependency>true</DevelopmentDependency>
+  <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+  <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+  <Description>Compile-time scalar projection generation for .NET 10 compiler hosts.</Description>
+ </PropertyGroup>
+ <ItemGroup>
+  <Reference Include="Microsoft.CodeAnalysis" HintPath="$(MSBuildToolsPath)/Roslyn/bincore/Microsoft.CodeAnalysis.dll" Private="false" />
+  <Reference Include="Microsoft.CodeAnalysis.CSharp" HintPath="$(MSBuildToolsPath)/Roslyn/bincore/Microsoft.CodeAnalysis.CSharp.dll" Private="false" />
+  <ProjectReference Include="../Projecta.Core/Projecta.Core.csproj" PrivateAssets="all" />
+ </ItemGroup>
+ <ItemGroup>
+  <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  <None Include="$(OutputPath)Projecta.Core.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+ </ItemGroup>
+</Project>

@@ -157,6 +157,10 @@ namespace Projecta.Impl
 
             return result;
             }
+            catch (JsonataException ex) when (ex.Position is null && ex.GetType() == typeof(JsonataException))
+            {
+                throw new JsonataException(ex.Code, ex.RawMessage, expr.position, ex);
+            }
             finally { environment.DecDepth(); }
         }
 
