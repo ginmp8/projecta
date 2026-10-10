@@ -16,7 +16,7 @@ Test("proxy source does not lazy load", () =>
     using var db = Create(); var customer = db.Customers.Single();
     Check(!db.Entry(customer).Collection(c => c.Orders).IsLoaded);
     var p = new ObjectProjector(sourceAdapters: new[] { new EfCoreSourceAdapter(db) });
-    var result = p.ProjectToToken(customer, new() { Expression = "{'Name':Name}" });
+    var result = p.ProjectToToken(customer, new ProjectionDefinition { Expression = "{'Name':Name}" });
     Check((string)((JObject)result).Properties["Name"] == "Ana");
     Check(!db.Entry(customer).Collection(c => c.Orders).IsLoaded);
     Check(db.ChangeTracker.LazyLoadingEnabled && db.ChangeTracker.AutoDetectChangesEnabled);
@@ -25,7 +25,7 @@ Test("root collection containing proxies", () =>
 {
     using var db = Create(); var customers = db.Customers.ToList();
     var p = new ObjectProjector(sourceAdapters: new[] { new EfCoreSourceAdapter(db) });
-    Check(p.Project<int>(customers, new() { Expression = "$count($)" }) == 1);
+    Check(p.Project<int>(customers, new ProjectionDefinition { Expression = "$count($)" }) == 1);
     Check(!db.Entry(customers[0]).Collection(c => c.Orders).IsLoaded);
 });
 Test("explicit loaded navigation", () =>
@@ -33,19 +33,19 @@ Test("explicit loaded navigation", () =>
     using var db = Create(); var customer = db.Customers.Include(c => c.Orders).Single();
     var adapter = new EfCoreSourceAdapter(db, new() { LoadedNavigations = new HashSet<string> { "Orders" } });
     var p = new ObjectProjector(sourceAdapters: new[] { adapter });
-    Check(p.Project<int>(customer, new() { Expression = "$count(Orders)" }) == 1);
+    Check(p.Project<int>(customer, new ProjectionDefinition { Expression = "$count(Orders)" }) == 1);
 });
 Test("requested unloaded navigation fails without loading", () =>
 {
     using var db = Create(); var customer = db.Customers.Single();
     var p = new ObjectProjector(sourceAdapters: new[] { new EfCoreSourceAdapter(db, new() { LoadedNavigations = new HashSet<string> { "Orders" } }) });
-    Throws<ObjectReadException>(() => p.ProjectToToken(customer, new() { Expression = "$" }));
+    Throws<ObjectReadException>(() => p.ProjectToToken(customer, new ProjectionDefinition { Expression = "$" }));
     Check(!db.Entry(customer).Collection(c => c.Orders).IsLoaded && db.ChangeTracker.LazyLoadingEnabled);
 });
 Test("detached mapped entity rejected", () =>
 {
     using var db = Create(); var p = new ObjectProjector(sourceAdapters: new[] { new EfCoreSourceAdapter(db) });
-    Throws<ObjectReadException>(() => p.ProjectToToken(new Customer(), new() { Expression = "$" }));
+    Throws<ObjectReadException>(() => p.ProjectToToken(new Customer(), new ProjectionDefinition { Expression = "$" }));
 });
 Test("allowlisted scalar update", () =>
 {

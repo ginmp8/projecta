@@ -36,3 +36,36 @@ Core-only checks are `./scripts/verify.sh --core-only`; never report that subset
 ## Verdict
 
 **Source deliverable with executed core evidence; full integration/production gate blocked.** The ZIP contains all implementation sources, tests and dependency declarations needed for the new standalone project. It is not a claim that every optional integration has compiled or that all security/performance risks are eliminated.
+
+## Post-distribution build repair (2026-10-09)
+
+A Windows `scripts/verify.ps1` build supplied by a consumer reported 8 compile
+errors: three CS0118 errors in `ObjectParsingTests.cs` where the `TestData`
+namespace was used like a type, and five CS0121 ambiguous overload calls in
+`Projecta.EntityFrameworkCore.Tests/Program.cs` using target-typed `new()`.
+
+Four test source files were updated: the three `ObjectParsingTests.cs` suites
+now use an explicit alias for `global::Projecta.TestData.TestData`, and all five
+EF Core calls now explicitly construct `ProjectionDefinition`. No production
+code, package versions or public API signatures were changed.
+
+**Validation for this repair:** static verification of the eight replacements,
+archive file integrity and manifest checks were executed. A fresh .NET 10
+build/test was **not executed** in the repair sandbox because the SDK was not
+available and direct SDK download DNS was blocked. Consumer Windows compilation
+and runtime test verification remain pending; the earlier evidence in this
+document applies to the previous source snapshot only.
+
+Verify on a machine with the .NET 10 SDK:
+
+```powershell
+./scripts/verify.ps1
+dotnet test tests/Projecta.Upstream.Tests/Projecta.Upstream.Tests.csproj -c Release
+dotnet test tests/Projecta.SystemTextJson.Tests/Projecta.SystemTextJson.Tests.csproj -c Release
+dotnet test tests/Projecta.NewtonsoftJson.Tests/Projecta.NewtonsoftJson.Tests.csproj -c Release
+```
+
+Note: `verify.ps1` compiles the NUnit suites but does not execute them; the
+explicit `dotnet test` commands above cover them. Upstream assertion changes
+may require independent evaluation rather than modifying production behavior
+to match older assumptions.

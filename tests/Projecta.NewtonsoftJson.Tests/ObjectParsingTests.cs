@@ -2,14 +2,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Projecta.Json;
 using NUnit.Framework;
-using Projecta.TestData;
+using SharedTestData = global::Projecta.TestData.TestData;
 
 namespace Projecta.NewtonsoftJson.Tests
 {
     public sealed class ObjectParsingTests
     {
         [Test, TestCaseSource(nameof(GetTestCases))]
-        public void RegularCases(TestData testData)
+        public void RegularCases(SharedTestData testData)
         {
             JToken token = ProjectaExtensions.FromObjectViaNewtonsoft(testData.SourceObject);
             string result = token.ToFlatString();
@@ -18,7 +18,7 @@ namespace Projecta.NewtonsoftJson.Tests
 
         public static List<TestCaseData> GetTestCases()
         {
-            return TestData.GetTestCasesNunit();
+            return SharedTestData.GetTestCasesNunit();
         }
     }
 }

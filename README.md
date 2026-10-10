@@ -26,7 +26,7 @@ Every project inherits `net10.0` and C# 14 from `Directory.Build.props`. All NuG
 
 ## Quick start
 
-Reference `src/Projecta/Projecta.csproj` from a consuming application, or build local NuGet packages. Three validated core packages are included under `artifacts/packages`; the optional integration packages require a normal restore/build.
+Reference `src/Projecta/Projecta.csproj` from a consuming application, or build local NuGet packages. This source ZIP does not bundle `.nupkg` files; generate local NuGet packages with `dotnet pack Projecta.slnx -c Release -o artifacts/packages` after a successful build.
 
 ```csharp
 using Projecta.Mapping;
