@@ -1,0 +1,828 @@
+{
+  "name": "Projecta",
+  "version": "0.2.0-alpha.1",
+  "target_framework": "net10.0",
+  "upstream_archive_sha256": "e0108b9cdb6d0429f55351d3f149fe695affd4fcbc375e30f01f086f53ef5e76",
+  "evidence": {
+    "core_tests": {
+      "passed": 110,
+      "failed": 0,
+      "status": "executed"
+    },
+    "newtonsoft_smoke": {
+      "passed": 12,
+      "failed": 0,
+      "status": "executed",
+      "assembly_file_version": "13.0.3.27908",
+      "declared_package_13_0_4_validation": "blocked"
+    },
+    "ef_core_10_0_12": "restore_and_runtime_blocked",
+    "core_nuget_packages": 3,
+    "package_only_consumer": "passed",
+    "upstream_nunit_suites": "not_run",
+    "windows_macos_ci": "not_run"
+  },
+  "manifest_self_excluded": true,
+  "files": [
+    {
+      "path": ".editorconfig",
+      "size": 182,
+      "sha256": "e3025cfe63d67a7b77e778683ddf710989791f38cfccfac386e00e54a3805cee"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "size": 692,
+      "sha256": "36bd970e680102fdd64fdd7b2e94e1edaf3dfccc2b2e34bc11f8c42a404f2f3a"
+    },
+    {
+      "path": ".gitignore",
+      "size": 90,
+      "sha256": "5748875d7a2f1398bc5239a58d690b5d3b876b5e0b90b050d15966426d8089a0"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "size": 1440,
+      "sha256": "285c0b1c9d9ace391d4e96f26addba1041eb6ae862199ec6249e1fada4b1b9f1"
+    },
+    {
+      "path": "Directory.Build.props",
+      "size": 871,
+      "sha256": "f6432298b05e64520f0d7c8f52d67ce96bf0eb8f57e5d6ab69a3e4f824108e8a"
+    },
+    {
+      "path": "Directory.Packages.props",
+      "size": 659,
+      "sha256": "da4ec280b761384b36e269ae42aaef92d4482d9436ea6ecd0510ed56a757469f"
+    },
+    {
+      "path": "LICENSE",
+      "size": 1110,
+      "sha256": "fe6349167926695417f39f6f00636dce194f0d0418e2b6d8752d1a1293c53ee8"
+    },
+    {
+      "path": "Projecta.slnx",
+      "size": 1146,
+      "sha256": "a4463a04e1d0985304ef08027bec7132b19bd05d26ba65b1b6618c2265d8e2c8"
+    },
+    {
+      "path": "README.md",
+      "size": 12003,
+      "sha256": "e5cbd5e0299306ab4e45a32980e39d11b557d4d084e5893221f472e2b0bf5602"
+    },
+    {
+      "path": "THIRD-PARTY-NOTICES.md",
+      "size": 1346,
+      "sha256": "e7842c31cced4c52741f7a3529bc1cc41e6d431a1b9db8bd4ac6e508565542ef"
+    },
+    {
+      "path": "artifacts/packages/Projecta.0.2.0-alpha.1.nupkg",
+      "size": 17874,
+      "sha256": "209d6200e63d2ca54fe1a1291dcbc7f0a192cca8910e6e50a0a4cf616e4860c9"
+    },
+    {
+      "path": "artifacts/packages/Projecta.Core.0.2.0-alpha.1.nupkg",
+      "size": 87848,
+      "sha256": "777fe689635552a8df23b28b682640e9695a3c25d746f1414953e86984ca7c21"
+    },
+    {
+      "path": "artifacts/packages/Projecta.SystemTextJson.0.2.0-alpha.1.nupkg",
+      "size": 13670,
+      "sha256": "08e4ddda2aac734108ea8bff621b40e135e01aea1ad63fe87a00ca500bf58749"
+    },
+    {
+      "path": "benchmarks/Projecta.Benchmarks/Program.cs",
+      "size": 1442,
+      "sha256": "93a723abb548b64083d5ad2fc50cbf9309a90fc4b83da324c8b658bedcb97850"
+    },
+    {
+      "path": "benchmarks/Projecta.Benchmarks/Projecta.Benchmarks.csproj",
+      "size": 221,
+      "sha256": "c5fdab691be4bab32c64534e6f736b2f8a00081ac696a974739861ee55e45e81"
+    },
+    {
+      "path": "docs/MIGRATION.md",
+      "size": 1960,
+      "sha256": "3fba6f44ca8ebdcc673ad0f0a487dcda5180f5f7fd83a9d4fcf9ed6e5a19ecf2"
+    },
+    {
+      "path": "docs/PERFORMANCE.md",
+      "size": 1929,
+      "sha256": "b7bb24c1103d2502c9b49a2d23f6a931c4fde4db2f037f510fcb6c07a01ffd38"
+    },
+    {
+      "path": "docs/SECURITY.md",
+      "size": 3729,
+      "sha256": "5c4a241f673bfbc913e3c7e7f44f77389e8f8aea40c6629fcbcb441034e2bb77"
+    },
+    {
+      "path": "docs/UPSTREAM.md",
+      "size": 1832,
+      "sha256": "9a50f782c11471720ed54ab3a548ef4dc0f115ff0d3f4c000c7776713803fcc3"
+    },
+    {
+      "path": "docs/VALIDATION.md",
+      "size": 3088,
+      "sha256": "6be0130c462c8dc3c2db69b907f4aeed935e182264e943f8caeed2fcc24907ed"
+    },
+    {
+      "path": "docs/validation/comparison-harness.cs",
+      "size": 2111,
+      "sha256": "c5d58c57be87bb94504bb85805221efc68c864581cf7ed24faf9e62832f6e9c6"
+    },
+    {
+      "path": "docs/validation/ef-restore.log",
+      "size": 635,
+      "sha256": "a5c9835d14e441c3091b26238540940bfcadd134066e49bfab4c5514dc983a51"
+    },
+    {
+      "path": "docs/validation/final-build.log",
+      "size": 1205,
+      "sha256": "b4d1da958ffc081781b28ac93e5d7c807c98adbda3d78f4fea4c0e2b04807293"
+    },
+    {
+      "path": "docs/validation/newtonsoft-smoke.log",
+      "size": 367,
+      "sha256": "815fa439a3803beee91455c854a46fa0f025c0e27932ef5da7591da78af4ef52"
+    },
+    {
+      "path": "docs/validation/pack.log",
+      "size": 323,
+      "sha256": "03c9972564d6df5f2509d978ab484d672430896e8c675c3b3287e188eab4a9f3"
+    },
+    {
+      "path": "docs/validation/package-consumer.log",
+      "size": 163,
+      "sha256": "ff64c5bfdc67d76784a60aed7e2c120c3ead40910adffceb25283029947b974c"
+    },
+    {
+      "path": "docs/validation/pad-red.log",
+      "size": 4120,
+      "sha256": "69f1e6e301d9ee2a0053046535f36915857950bac6aae5aeb873709b22f6fdc9"
+    },
+    {
+      "path": "docs/validation/performance-comparison.json",
+      "size": 1999,
+      "sha256": "0cf565083716578eadf2a1bf2b56222d1216b9e68d024645b3804e6764ad6dfe"
+    },
+    {
+      "path": "docs/validation/projecta-benchmark.log",
+      "size": 494,
+      "sha256": "0abefcbb3ef6e68ab6ffb18544205f4670c235137d452af147e2a160660ea6f4"
+    },
+    {
+      "path": "docs/validation/projecta-tests.json",
+      "size": 8801,
+      "sha256": "9dcf2400f8ba7664e543b5a33da5f5b92c150e8fc95cafadb39ec8446f30e769"
+    },
+    {
+      "path": "docs/validation/projecta-tests.log",
+      "size": 3709,
+      "sha256": "9b1dce870656f848df95afdf141b8efe83231df50205d52da9b04e336d9ebf26"
+    },
+    {
+      "path": "docs/validation/reader-green.log",
+      "size": 93,
+      "sha256": "2fc4112650722312769f84801cc3e9e97b22478e53265a9e7cea5baeab094582"
+    },
+    {
+      "path": "docs/validation/sample.log",
+      "size": 235,
+      "sha256": "6e37040ea57e2f93ad0cc5067ba538e5f899840ac2296a391a6d2263888c89fc"
+    },
+    {
+      "path": "docs/validation/structure.json",
+      "size": 265,
+      "sha256": "53c711db93a6145dbcdc0456e0103bdcfc2ea9c45aa81aef05d19a1d5a41e9cd"
+    },
+    {
+      "path": "docs/validation/upstream-reader-red.txt",
+      "size": 304,
+      "sha256": "6dc3268d98b6fdbe006207c2b251bae15ee0af3860c8a8653065c658a7a2646e"
+    },
+    {
+      "path": "global.json",
+      "size": 111,
+      "sha256": "20c93ca7812d0a9825eef71217156f95ab2f4fe5aadfeb22ebc1c24b630018d3"
+    },
+    {
+      "path": "samples/Projecta.Sample/Program.cs",
+      "size": 1054,
+      "sha256": "197c5d0fe02ce273c9c46148ebc0fa695ad11723e3cf120f242267e68c0ab36b"
+    },
+    {
+      "path": "samples/Projecta.Sample/Projecta.Sample.csproj",
+      "size": 291,
+      "sha256": "5e65c9939cec0e970107cd24da068f0d3bfe6726b2c5128612155f01a5815884"
+    },
+    {
+      "path": "samples/Projecta.Sample/customer.json",
+      "size": 229,
+      "sha256": "ce056cba26ea2e1e4e3803877bd2c8bff62e76720795f486925548ab5bffe6f4"
+    },
+    {
+      "path": "scripts/verify.ps1",
+      "size": 770,
+      "sha256": "9f8f279848d816d3d3d4498f3000b5bf830b72dd7a374740f10ba328f2e3f400"
+    },
+    {
+      "path": "scripts/verify.sh",
+      "size": 570,
+      "sha256": "b9efa5b64167f4c3247f824eeea2e2209bbd46b2a1a8eafc0abfe7f87c845724"
+    },
+    {
+      "path": "src/Projecta/ObjectProjector.cs",
+      "size": 7435,
+      "sha256": "554886fc3c82655995eceb3fe8d4bb77757c613d87080c8f7ee7fa8b18c048ea"
+    },
+    {
+      "path": "src/Projecta/Projecta.csproj",
+      "size": 391,
+      "sha256": "efdddd17eb88349d73a1706e847d3263871dea1066c9969da239f5ba4f707202"
+    },
+    {
+      "path": "src/Projecta/ProjectionDefinition.cs",
+      "size": 3399,
+      "sha256": "19bd50070cc7e528b7ceba5d4612d9caec906a6df42d7872c6be64aebbf668f6"
+    },
+    {
+      "path": "src/Projecta/ProjectionOptions.cs",
+      "size": 357,
+      "sha256": "a032e4b1de999d3bd04b24eea2e2563b8bab9f9d04bdd929ff8f5829b9ba27c6"
+    },
+    {
+      "path": "src/Projecta/ProjectionTypeRegistry.cs",
+      "size": 678,
+      "sha256": "70f8c3887dd12539d3d79c23462871ab49ab82c8aaf4b57473341744788445cd"
+    },
+    {
+      "path": "src/Projecta.Core/Eval/Attributes.cs",
+      "size": 1068,
+      "sha256": "2290df217c01b4dc9a3d18419f3127638d547387a03c0840d3a233f2593a36a2"
+    },
+    {
+      "path": "src/Projecta.Core/Eval/BuiltinFunctions.cs",
+      "size": 99003,
+      "sha256": "71c7b46c9e35a535499d187b640643ae1e903fc3d75446a63321e9c766b60d72"
+    },
+    {
+      "path": "src/Projecta.Core/Eval/EvaluationSupplement.cs",
+      "size": 640,
+      "sha256": "a13dee30c0074f201ae379c997ece1bc74a230e87841d1012ce910be2a7361e5"
+    },
+    {
+      "path": "src/Projecta.Core/Eval/FunctionToken.cs",
+      "size": 3523,
+      "sha256": "e76f62ea36b74791a0445ca15e5f4f01e392d8fc6b33ca07566185c9581aac4d"
+    },
+    {
+      "path": "src/Projecta.Core/Eval/FunctionTokenClosure.cs",
+      "size": 1446,
+      "sha256": "d0ed17c39ee7e2af41819d36d124c061685a499a5d0262f4fc4f8bada48dfdc5"
+    },
+    {
+      "path": "src/Projecta.Core/Eval/FunctionTokenCsharp.cs",
+      "size": 10264,
+      "sha256": "1bef4ef8844c5f2ac60d802660b0215ad00f7346e8f110e491acb9275bc82f75"
+    },
+    {
+      "path": "src/Projecta.Core/Eval/FunctionTokenLambda.cs",
+      "size": 2283,
+      "sha256": "d827c9a0e9962f2e3d13d014e76fdb0947923155aef8441258bb91cab0e5f192"
+    },
+    {
+      "path": "src/Projecta.Core/Eval/FunctionTokenPartial.cs",
+      "size": 2367,
+      "sha256": "99b344ea96adfbaeb195750526ee4263cabf164a02979d1725fc046e0cae399f"
+    },
+    {
+      "path": "src/Projecta.Core/Eval/FunctionTokenRegex.cs",
+      "size": 4063,
+      "sha256": "3055c27cd3f1e30089ee7ed89d1ee6805fc33dc836fb75e1ae96ab7c442416ec"
+    },
+    {
+      "path": "src/Projecta.Core/Eval/FunctionTokenReplacer.cs",
+      "size": 4881,
+      "sha256": "570a198085e4216950dc3c8fc45fe7af09e6e483a597d4ae57094531bcbe48e0"
+    },
+    {
+      "path": "src/Projecta.Core/Eval/FunctionTokenTransformation.cs",
+      "size": 4323,
+      "sha256": "64c53e3a6ed30e734cc7d0b7942a115bfb8d670c3fa09e1cec6a7a1e25ea9359"
+    },
+    {
+      "path": "src/Projecta.Core/Eval/Helpers.cs",
+      "size": 4384,
+      "sha256": "55488ccf048873239278b2befcd6c97dca6a946b672a016d16e5c991524c0b0f"
+    },
+    {
+      "path": "src/Projecta.Core/Eval/JsonataArray.cs",
+      "size": 1873,
+      "sha256": "e9a2055c7258b8f593e39f5cf49e78ccc3485368f19882bd33732c5b43f0cc74"
+    },
+    {
+      "path": "src/Projecta.Core/EvaluationEnvironment.cs",
+      "size": 5191,
+      "sha256": "c59ac85584fc76f74ae83ceda50cff7856de4cf38178a9de8b02e811f7d5020b"
+    },
+    {
+      "path": "src/Projecta.Core/Execution/EvaluationBudget.cs",
+      "size": 2219,
+      "sha256": "df6ce8ba0b1fe3c460837c172d227c9ae0eed5b026a014cb3ef942be9e8d3793"
+    },
+    {
+      "path": "src/Projecta.Core/Execution/EvaluationLimits.cs",
+      "size": 1132,
+      "sha256": "d14fceb9c3a5f09c5857f778fdbf42ce2bb35ab67fe9c4792c55ba9eb56d4d8e"
+    },
+    {
+      "path": "src/Projecta.Core/Impl/JsonataQ.cs",
+      "size": 87972,
+      "sha256": "6fd188c55f9ebce42e78815d778c929352e5abdd99548e7d3c5ae54664a80917"
+    },
+    {
+      "path": "src/Projecta.Core/Impl/Node.cs",
+      "size": 49422,
+      "sha256": "3de2cee392ebb30042e994b2b0d8a1164ee1dc31b4193c8acb8a52359e11b077"
+    },
+    {
+      "path": "src/Projecta.Core/Impl/NodeFactory.cs",
+      "size": 24127,
+      "sha256": "d2fa7ef93f62d192ffb1beb514c73f7331ad58b693d14ba7341694f140581ffc"
+    },
+    {
+      "path": "src/Projecta.Core/Impl/Optimizer.cs",
+      "size": 31341,
+      "sha256": "8702a559c56a62384d49763c483b01138af92756524f8ac0a13b001b82d96eeb"
+    },
+    {
+      "path": "src/Projecta.Core/Impl/Parser.cs",
+      "size": 10696,
+      "sha256": "a711159ac089e867f84da9d12ef0de78df51ba25a21caa0fe3bc2c1995301af6"
+    },
+    {
+      "path": "src/Projecta.Core/Impl/Signature.cs",
+      "size": 17587,
+      "sha256": "303cbb3bcf32e56de0455024abf8f7af7c932490b73097842ded64bbae8f9d63"
+    },
+    {
+      "path": "src/Projecta.Core/Impl/Tokenizer.cs",
+      "size": 17727,
+      "sha256": "e9a9d15b51b54ae6e2a1ab5e55448d02857f7a51077bf065bcae458c4a6257f5"
+    },
+    {
+      "path": "src/Projecta.Core/Json/JArray.cs",
+      "size": 3474,
+      "sha256": "d17c8c09e36316228c63ea424eb343fba05babfe6b5a089776bbd7a32cb392b0"
+    },
+    {
+      "path": "src/Projecta.Core/Json/JObject.cs",
+      "size": 4814,
+      "sha256": "39d87093bc021295f7115fb50de4929d34e04447764fb463343d2a10f595ab1b"
+    },
+    {
+      "path": "src/Projecta.Core/Json/JToken.cs",
+      "size": 17906,
+      "sha256": "ab39ea7bb8683b43d5b45911ba6d9fc26e2728b58458f0011a19a6bae682d37c"
+    },
+    {
+      "path": "src/Projecta.Core/Json/JTokenType.cs",
+      "size": 230,
+      "sha256": "675f9e5fc4a742ad39fa7b0dbde67a5d5e00dd7a6336576d4c271f7a9fc5e950"
+    },
+    {
+      "path": "src/Projecta.Core/Json/JValue.cs",
+      "size": 7165,
+      "sha256": "2a55eeb9f148a71c8a11f3fdfb63446a025301a9dd3195d0c5667e2f390f3516"
+    },
+    {
+      "path": "src/Projecta.Core/Json/JsonHelpers.cs",
+      "size": 532,
+      "sha256": "36212273bbd85fbaa9c1116cb5d1f1aa71c9a6483359d97f68dde31d4528e2fc"
+    },
+    {
+      "path": "src/Projecta.Core/Json/JsonParseException.cs",
+      "size": 718,
+      "sha256": "737069b251d92963ba69a037ebae33ba67b1cb0fac1afb0182612b35e8a902a5"
+    },
+    {
+      "path": "src/Projecta.Core/Json/JsonParser.cs",
+      "size": 18634,
+      "sha256": "2d1b888cb1a277fc328879db2628d8d2fab7d8071c02b3cf14276ff38302cc22"
+    },
+    {
+      "path": "src/Projecta.Core/Json/JsonParserAsync.cs",
+      "size": 20667,
+      "sha256": "537933dab2f116c0a3a3f30085ab9d40001d5453ad0b7b384c015f156e78e66d"
+    },
+    {
+      "path": "src/Projecta.Core/Json/ParseSettings.cs",
+      "size": 2791,
+      "sha256": "ac787fe4e61fa0eedaff607dee7ff3f9620b323b4c8cf3d52e5ad133714d3d07"
+    },
+    {
+      "path": "src/Projecta.Core/Json/SerializationSettings.cs",
+      "size": 372,
+      "sha256": "2c964c9359e75b93a2cc4e7f3f64891b02d17f0843f441ac8283335ddbd13f5b"
+    },
+    {
+      "path": "src/Projecta.Core/Json/TextReaderWrapper.cs",
+      "size": 1903,
+      "sha256": "0119ec567d3ca81748df3d1c4d4e4926115bb863cac3d2f4c98f7290cd9d429e"
+    },
+    {
+      "path": "src/Projecta.Core/Json/ToObjectSettings.cs",
+      "size": 425,
+      "sha256": "b0a9163ba0ed0586389697cdc1f2cc991e80f14329a357cab2f4047e9473ad7c"
+    },
+    {
+      "path": "src/Projecta.Core/JsonataException.cs",
+      "size": 11599,
+      "sha256": "16ccb29599477efedd965d1fccb685e1a8198466b3899a33e0216de9a5edebc9"
+    },
+    {
+      "path": "src/Projecta.Core/Objects/IObjectSourceAdapter.cs",
+      "size": 282,
+      "sha256": "7e7e912d3f4aba310feb754c3d35612699277137bbe1b5be80425dbbeff8ed04"
+    },
+    {
+      "path": "src/Projecta.Core/Objects/ObjectReadOptions.cs",
+      "size": 749,
+      "sha256": "4074e57e3abe3fa75093f742101c899103a4989273f7c229ca25b4d0325707fb"
+    },
+    {
+      "path": "src/Projecta.Core/Objects/ObjectReader.cs",
+      "size": 11965,
+      "sha256": "d812c0917cac5036832c1c3de04e9579ebaf216bd567a376c326d15ffcabe349"
+    },
+    {
+      "path": "src/Projecta.Core/Objects/TokenValidation.cs",
+      "size": 1688,
+      "sha256": "b1e0a83468140d1a1ea2a162711b05625e92f3e3b4563860d8acf34387b339d6"
+    },
+    {
+      "path": "src/Projecta.Core/Projecta.Core.csproj",
+      "size": 306,
+      "sha256": "38b443959d524ba91f55079edcb75cbfbc146cb2464502fba632cc5ac1825428"
+    },
+    {
+      "path": "src/Projecta.Core/ProjectaQuery.cs",
+      "size": 3195,
+      "sha256": "322d30a79e8384e6bb821a5c0f05e937037b8eb46171e472a123475a4e32de29"
+    },
+    {
+      "path": "src/Projecta.EntityFrameworkCore/EfCoreSourceAdapter.cs",
+      "size": 5007,
+      "sha256": "60d8e65c5d3b5d3a4bf4513c85728dad5ffe80595d16c58516b9595ffa1b4aef"
+    },
+    {
+      "path": "src/Projecta.EntityFrameworkCore/Projecta.EntityFrameworkCore.csproj",
+      "size": 354,
+      "sha256": "8f71a158568e5344df6b0b81b0ce6acaf9e8b838754686621175149863fc8ebe"
+    },
+    {
+      "path": "src/Projecta.EntityFrameworkCore/TrackedEntityUpdater.cs",
+      "size": 3615,
+      "sha256": "e70d44b489a1500d113a1a3950a19f6434369425267297348bd75169ac870e9a"
+    },
+    {
+      "path": "src/Projecta.NewtonsoftJson/NewtonsoftAdapters.cs",
+      "size": 1936,
+      "sha256": "20e3755462dffdd867c94dd7de9f5fc004d24726f0e087b53b11ab1097e8c3c7"
+    },
+    {
+      "path": "src/Projecta.NewtonsoftJson/Projecta.NewtonsoftJson.csproj",
+      "size": 483,
+      "sha256": "ae19682ae621a15b818650f3b29af13a7f5f57c7d4a41a2ef0c81d7885aa4d48"
+    },
+    {
+      "path": "src/Projecta.NewtonsoftJson/ProjectaExtensions.cs",
+      "size": 9254,
+      "sha256": "bc99e94531e83acbe4df15fda0808f51abc8e58d79df12066914e50b307b568b"
+    },
+    {
+      "path": "src/Projecta.SystemTextJson/Projecta.SystemTextJson.csproj",
+      "size": 333,
+      "sha256": "a86aba77d0c3d6bf6de44c771a95a04ca0be7daf539c925ff1776fc5a892c690"
+    },
+    {
+      "path": "src/Projecta.SystemTextJson/ProjectaExtensions.cs",
+      "size": 9956,
+      "sha256": "98d150578d766e18db858372bab271c3c87630eacbcfa0174c7197d3db1c9b49"
+    },
+    {
+      "path": "tests/Projecta.EntityFrameworkCore.Tests/Program.cs",
+      "size": 5121,
+      "sha256": "1990995a230c607522379e1f33f11920ffbff95a3bdb2cc1bb638c2ae1feac95"
+    },
+    {
+      "path": "tests/Projecta.EntityFrameworkCore.Tests/Projecta.EntityFrameworkCore.Tests.csproj",
+      "size": 403,
+      "sha256": "1cce9a10e040260dd53c834526af048ec7156e0006186dbd2daa63ff0344ff78"
+    },
+    {
+      "path": "tests/Projecta.NewtonsoftIntegration.Tests/Program.cs",
+      "size": 2795,
+      "sha256": "8248a022638c9468ef16514983e24bc2d4a58fbffd2c4faa8c253b90e809e7eb"
+    },
+    {
+      "path": "tests/Projecta.NewtonsoftIntegration.Tests/Projecta.NewtonsoftIntegration.Tests.csproj",
+      "size": 251,
+      "sha256": "aa66bcf66feab884e313ff614abc597e1a723428afb75ca4709b0bd9378a023f"
+    },
+    {
+      "path": "tests/Projecta.NewtonsoftJson.Tests/JSONchecker.cs",
+      "size": 1551,
+      "sha256": "6930a5ed283bb6eb80b9df5b3c7249a963b6b73ec2d4cb90d3a662e58b0237b4"
+    },
+    {
+      "path": "tests/Projecta.NewtonsoftJson.Tests/ObjectParsingTests.cs",
+      "size": 694,
+      "sha256": "187bda661c478118b8f96c3ddeccbab27b21b4ce1ca96f419235493b661ac30a"
+    },
+    {
+      "path": "tests/Projecta.NewtonsoftJson.Tests/Projecta.NewtonsoftJson.Tests.csproj",
+      "size": 436,
+      "sha256": "3a1a11bf74d900686382a869e3f4a5741e8b2be27e24a13ed62eff20aaaa1309"
+    },
+    {
+      "path": "tests/Projecta.NewtonsoftJson.Tests/UnitTest1.cs",
+      "size": 3562,
+      "sha256": "e1dd6b3e377f4c97a4c4d8d78f72d9ca4d5ea0f8ba713deeac08b334644ece3b"
+    },
+    {
+      "path": "tests/Projecta.SystemTextJson.Tests/JSONchecker.cs",
+      "size": 1255,
+      "sha256": "df61c7de1287617a07891da04038208f4f0c17e0189da52c0de4f0c8b81b5ddf"
+    },
+    {
+      "path": "tests/Projecta.SystemTextJson.Tests/JSONcheckerNode.cs",
+      "size": 1757,
+      "sha256": "6a8d8eb030fac9d3386182c32ab5f6986ce73e44a5027307181b1691251c0315"
+    },
+    {
+      "path": "tests/Projecta.SystemTextJson.Tests/ObjectParsingTests.cs",
+      "size": 698,
+      "sha256": "e1f085a18035fbb34844fad0e8e8f8a4a41fc4d70916162eb8880bd97c104e1f"
+    },
+    {
+      "path": "tests/Projecta.SystemTextJson.Tests/Projecta.SystemTextJson.Tests.csproj",
+      "size": 436,
+      "sha256": "e9406eb5f8f56d2b5a12e4d0b29a971c0ab1b2d75db3bc712adccc38f640339c"
+    },
+    {
+      "path": "tests/Projecta.SystemTextJson.Tests/UndefinedKindTests.cs",
+      "size": 841,
+      "sha256": "42f5fbd95326418d33ecf19d4a410c0c30a03cc7ec9260cdc40ce0ae8c8e19bf"
+    },
+    {
+      "path": "tests/Projecta.TestData/JsonCheckerData.cs",
+      "size": 3090,
+      "sha256": "deb0fb148b2bc986c5f86b47dced41bfc562328477d5de94cd2a7fdea6b2934d"
+    },
+    {
+      "path": "tests/Projecta.TestData/Projecta.TestData.csproj",
+      "size": 306,
+      "sha256": "132a2b458f4caf977cc3fdf7231c6143b2bdc29d00d59c3404f526b9bcf6b633"
+    },
+    {
+      "path": "tests/Projecta.TestData/TestData.cs",
+      "size": 3879,
+      "sha256": "7b34d82610cc83260de1d4e74abcc60eb5f0e473b460ff7711bb57d41390710c"
+    },
+    {
+      "path": "tests/Projecta.TestData/UnitTest1.cs",
+      "size": 258,
+      "sha256": "4356c30e8a18a1f30ee5d1f94314a326f53d03b2138f4b45110b372ca37e5489"
+    },
+    {
+      "path": "tests/Projecta.Tests/Program.cs",
+      "size": 19440,
+      "sha256": "b4eea7e44475415410f5aa8206a9384e489d189e810e8c7444391c875a6f7d43"
+    },
+    {
+      "path": "tests/Projecta.Tests/Projecta.Tests.csproj",
+      "size": 391,
+      "sha256": "e4ca36e448fe7360f4f81eb41a094183fcba5a795d5a831f13e02f78d82f40f8"
+    },
+    {
+      "path": "tests/Projecta.Upstream.Tests/DomTests.cs",
+      "size": 3868,
+      "sha256": "56cbc91ac5891b194ea909de9c605058be1591c198d4ddb636716e468dbe6e5c"
+    },
+    {
+      "path": "tests/Projecta.Upstream.Tests/FuncBindingTests.cs",
+      "size": 2669,
+      "sha256": "6c4d61cee5be2037a481f11e3d99b271a47dabc59e42305e6115d68e86b4cae2"
+    },
+    {
+      "path": "tests/Projecta.Upstream.Tests/ObjectParsingTests.cs",
+      "size": 672,
+      "sha256": "9d046eb1bb7389634ae7441605e6bfe3a0df5288bc59ca27655c8b98b7e6dda3"
+    },
+    {
+      "path": "tests/Projecta.Upstream.Tests/Projecta.Upstream.Tests.csproj",
+      "size": 416,
+      "sha256": "d8883c8e8e9a432cac1f8f6c5a310eb29f99d39a42d4a8b7c1b97c4851da4089"
+    },
+    {
+      "path": "tests/Projecta.Upstream.Tests/SerializationTest.cs",
+      "size": 2787,
+      "sha256": "b329f2f493df7a6b4b3584d42bae60b5d42400243cd851e6b99d8ebec8b91daf"
+    },
+    {
+      "path": "tests/Projecta.Upstream.Tests/ToMillisTest.cs",
+      "size": 1511,
+      "sha256": "3f10bc904dcd8c67955c533ecc7d9f45f308168e0757fac1b2bd9a4c3a4efebf"
+    },
+    {
+      "path": "tests/Projecta.Upstream.Tests/UnitTest1.cs",
+      "size": 19737,
+      "sha256": "401e5607655e7a7a745852d3cfe791cf69c41be7473b539366d2ab2063f1e908"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail1.json",
+      "size": 60,
+      "sha256": "438b1027386f69e8ff72306d162bba30745cfc3ad99522c06b77093f6b2868b1"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail10.json",
+      "size": 58,
+      "sha256": "ffea57a589f965c41b8778f1f0b69a1f4b7a14f072b868389cd6e2d249a33246"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail11.json",
+      "size": 29,
+      "sha256": "ba669b02c583cdc66458f9318ec64f2787e1edded69cee94361d9d04bf87b591"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail12.json",
+      "size": 31,
+      "sha256": "8033711342b67e573d96916fd820730a0a12ee291bd2e4ae324df3455c3f825f"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail13.json",
+      "size": 43,
+      "sha256": "a9235f6b3a47a700d45a8cba0c0b01b62ed4b2fd8a0f10cfe7964bde5e8cc1e0"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail14.json",
+      "size": 31,
+      "sha256": "4c353586a59fd208964f41f12547ef9e403520b87e9d9fe73c0bd6951de36933"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail15.json",
+      "size": 34,
+      "sha256": "656c4510d2ae41d28f3bb5498a7df7e87652bbbb35a7c7ef7c28d4a3d1d59eae"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail16.json",
+      "size": 8,
+      "sha256": "4514053448b28818d0d23041242b0e1705ea0bbf9f2ee84694d4e0100bd90cc4"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail17.json",
+      "size": 34,
+      "sha256": "a806d560ae63698f5082c7e51189395be458d1709db63244d26846f5a1e1a91d"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail18.json",
+      "size": 50,
+      "sha256": "e663fb0874bda154424bc35b9aff5f61d73d1a8cb926ccf41311827f30456997"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail19.json",
+      "size": 22,
+      "sha256": "f262f8944e9f4346e80ccab07d2cc74f95928193210bc7a95c634f665f105b03"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail2.json",
+      "size": 17,
+      "sha256": "9dbe48572aa40ff5e44b7b0e691e1b487d37cd4cfb34cf5bb506a5b6e965ec3b"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail20.json",
+      "size": 23,
+      "sha256": "beff780d4797749a6180792d96de68b52eafbe3558578e2486b51c0fc384d3f0"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail21.json",
+      "size": 32,
+      "sha256": "d786f4c34fc330006cfd6ef9a855d4233ce7ea4ffdce19a1aeb6498ae0341edc"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail22.json",
+      "size": 33,
+      "sha256": "dd22ed47b00f7977a8fd058adbf448e7af9b4cf7299c8a11f21298ded07b9e03"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail23.json",
+      "size": 20,
+      "sha256": "5b746985dd2a3406e0d457dc38583b5ed26c2691950a10e1e50049a93c924a78"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail24.json",
+      "size": 16,
+      "sha256": "0389d0d5920ee2996811974bdcbfe05c9ca0ed79af909704b8485bc86f6eaf25"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail25.json",
+      "size": 29,
+      "sha256": "8305373703e9a50e767c42929d22bb69b377cf62a5aeba4dc60bfbf28939411d"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail26.json",
+      "size": 32,
+      "sha256": "604a0708fc262be2e074de650a8017c196d9e8774b147b675256be4ccd9ddf9f"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail27.json",
+      "size": 14,
+      "sha256": "4a6ce093f89d76306dc76ccb5f6e468fb95c189eaa16d6b6c80954c21b3be635"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail28.json",
+      "size": 15,
+      "sha256": "a4a310e88adb621126f6e044f7919728d6fdf1df6a7d5a445e7215539f2ac264"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail29.json",
+      "size": 4,
+      "sha256": "cd279aa777afca083b346dbc2b62a1847c24f1556b619b7564842457f8949c93"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail3.json",
+      "size": 37,
+      "sha256": "6903daf61af5b38e0bc66d8da4f13631e2c2d03598169fe2d7c45d2504d310b9"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail30.json",
+      "size": 5,
+      "sha256": "3f54bdbbd4e3ad547fa457b5810df7c96f2d2c3bc6985e11202ffd1d42116889"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail31.json",
+      "size": 7,
+      "sha256": "25981c42fdd25646ab17d57bfaa65e4b2d7b791fdf13840e75c5a9e8f66dec70"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail32.json",
+      "size": 40,
+      "sha256": "15388c40b8b3920b49a317f303140234fecaa37d6adc8056f54b8d7d79cfba87"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail33.json",
+      "size": 12,
+      "sha256": "df72f007b029ebe06bffcd6083deff92aae557aa172eaf7e2504a3222dc73b60"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail4.json",
+      "size": 16,
+      "sha256": "15836776fdc7d0473f68c35c1295e473d57c215af1232b439b28120f674be45f"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail5.json",
+      "size": 24,
+      "sha256": "40b23c469b617b09914010ee5c5aa0faa706061f77b4a96b374742c18bb17d42"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail6.json",
+      "size": 26,
+      "sha256": "9cac15bfc3db16d965b9074329f4b7b26443fd4ccbf21cc545cc718114cbda20"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail7.json",
+      "size": 26,
+      "sha256": "d9b01bb868ba4a6156085744bddf7acf119125aaf40e19e404b284e99b1973e0"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail8.json",
+      "size": 16,
+      "sha256": "fbb0928ebab6b0f1aa7b5a7f10453bf89cc7ed56185bd783836ceedeec248ea8"
+    },
+    {
+      "path": "tests/fixtures/json-checker/fail9.json",
+      "size": 22,
+      "sha256": "a3a4796b5ddb6c80e894113c690a75e5290ef109601dee2e277f652bc6d6a163"
+    },
+    {
+      "path": "tests/fixtures/json-checker/pass1.json",
+      "size": 1441,
+      "sha256": "a46f670e9676dd3d5a22ccbd44be74391cd57867f0a20ee9c5bba2c1e9742239"
+    },
+    {
+      "path": "tests/fixtures/json-checker/pass2.json",
+      "size": 52,
+      "sha256": "7f9deff2652df58a02ca676ff9494de3d93f18db64c7f20f9596dffb8c92f187"
+    },
+    {
+      "path": "tests/fixtures/json-checker/pass3.json",
+      "size": 148,
+      "sha256": "45aaef317f170e5490aa4a18cc301f6d5e03ee617980dec1b15403abf6c537f4"
+    },
+    {
+      "path": "tests/fixtures/json-checker/readme.md",
+      "size": 154,
+      "sha256": "98435a63f8de99fa36c61d8395e5c1fe9676aeee889c08e955504c0b15d2221b"
+    }
+  ]
+}

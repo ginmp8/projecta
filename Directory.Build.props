@@ -1,0 +1,20 @@
+<Project>
+ <PropertyGroup>
+  <TargetFramework>net10.0</TargetFramework>
+  <LangVersion>14.0</LangVersion>
+  <Nullable>enable</Nullable>
+  <ImplicitUsings>disable</ImplicitUsings>
+  <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  <Deterministic>true</Deterministic>
+  <Version>0.2.0-alpha.1</Version>
+  <Authors>Projecta contributors; Mikhail Barg (upstream engine)</Authors>
+  <PackageLicenseFile>LICENSE</PackageLicenseFile>
+  <PackageReadmeFile>README.md</PackageReadmeFile>
+  <PackageTags>jsonata;projection;mapping;dotnet</PackageTags>
+ </PropertyGroup>
+ <ItemGroup>
+  <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="/" />
+  <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="/" />
+  <None Include="$(MSBuildThisFileDirectory)THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="/" />
+ </ItemGroup>
+</Project>

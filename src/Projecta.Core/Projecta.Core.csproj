@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><IsPackable>true</IsPackable><RootNamespace>Projecta</RootNamespace><Description>Projecta standalone JSONata engine and object projection.</Description></PropertyGroup><ItemGroup><InternalsVisibleTo Include="Projecta.Upstream.Tests" /></ItemGroup></Project>

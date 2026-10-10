@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><IsPackable>true</IsPackable><RootNamespace>Projecta.SystemTextJson</RootNamespace><Description>Projecta standalone JSONata engine and object projection.</Description></PropertyGroup><ItemGroup><ProjectReference Include="../Projecta.Core/Projecta.Core.csproj" /></ItemGroup></Project>

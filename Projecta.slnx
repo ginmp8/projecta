@@ -1,0 +1,16 @@
+<Solution>
+  <Project Path="benchmarks/Projecta.Benchmarks/Projecta.Benchmarks.csproj" />
+  <Project Path="samples/Projecta.Sample/Projecta.Sample.csproj" />
+  <Project Path="src/Projecta.Core/Projecta.Core.csproj" />
+  <Project Path="src/Projecta.EntityFrameworkCore/Projecta.EntityFrameworkCore.csproj" />
+  <Project Path="src/Projecta.NewtonsoftJson/Projecta.NewtonsoftJson.csproj" />
+  <Project Path="src/Projecta.SystemTextJson/Projecta.SystemTextJson.csproj" />
+  <Project Path="src/Projecta/Projecta.csproj" />
+  <Project Path="tests/Projecta.EntityFrameworkCore.Tests/Projecta.EntityFrameworkCore.Tests.csproj" />
+  <Project Path="tests/Projecta.NewtonsoftIntegration.Tests/Projecta.NewtonsoftIntegration.Tests.csproj" />
+  <Project Path="tests/Projecta.NewtonsoftJson.Tests/Projecta.NewtonsoftJson.Tests.csproj" />
+  <Project Path="tests/Projecta.SystemTextJson.Tests/Projecta.SystemTextJson.Tests.csproj" />
+  <Project Path="tests/Projecta.TestData/Projecta.TestData.csproj" />
+  <Project Path="tests/Projecta.Tests/Projecta.Tests.csproj" />
+  <Project Path="tests/Projecta.Upstream.Tests/Projecta.Upstream.Tests.csproj" />
+</Solution>

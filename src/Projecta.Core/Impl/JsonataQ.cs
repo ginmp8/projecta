@@ -1,0 +1,2123 @@
+using Projecta.Json;
+using Projecta;
+using System.Collections.Generic;
+using System;
+using Projecta.Eval;
+using System.Data;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+
+namespace Projecta.Impl 
+{
+    internal static class JsonataQ
+    {
+        internal static readonly JValue UNDEFINED = JValue.CreateUndefined();
+
+        internal static JToken evaluateMain(Node ast, JToken input, EvaluationEnvironment parentEnvironment)
+        {
+            // the variable bindings have been passed in - create a frame to hold these
+            EvaluationEnvironment environment = EvaluationEnvironment.CreateEvalEnvironment(parentEnvironment);
+
+            // put the input document into the environment as the root object
+            environment.BindValue("$", input);
+
+            // if the input is a JSON array, then wrap it in a singleton sequence so it gets treated as a single input
+            if (
+                input is JArray
+                && (input is not JsonataArray jsonataArray || !jsonataArray.sequence)   //this may happen via BuiltinFunctions.Eval
+            )
+            {
+                JsonataArray inputWrapper = JsonataArray.CreateSequence(input);
+                inputWrapper.outerWrapper = true;
+                input = inputWrapper;
+            }
+
+            return JsonataQ.evaluate(ast, input, environment);
+        }
+
+        internal static JToken evaluate(Node expr, JToken input, EvaluationEnvironment environment)
+        {
+            environment.IncDepth();
+            try
+            {
+            JToken result;
+
+            switch (expr.type)
+            {
+            case SymbolType.path:
+                result = JsonataQ.evaluatePath((PathRuntimeNode)expr, input, environment);
+                break;
+            case SymbolType.binary:
+                result = JsonataQ.evaluateBinary((BinaryNode)expr, input, environment);
+                break;
+            case SymbolType._unary_minus:
+                result = JsonataQ.evaluateUnaryMinus((UnaryMinusNode)expr, input, environment);
+                break;
+            case SymbolType._unary_array:
+                result = JsonataQ.evaluateUnaryArray((ArrayNode)expr, input, environment);
+                break;
+            case SymbolType._unary_group:
+                // object constructor - apply grouping
+                result = JsonataQ.evaluateGroupExpression((GroupNode)expr, input, environment);
+                break;
+            case SymbolType.name:
+                result = JsonataQ.evaluateName((NameNode)expr, input, environment);
+                break;
+            case SymbolType.@string:
+                result = JsonataQ.evaluateStringLiteral((StringNode)expr); //, input, environment);
+                break;
+            case SymbolType._value_bool:
+                result = JsonataQ.evaluateBoolLiteral((BoolNode)expr); //, input, environment);
+                break;
+            case SymbolType._value_null:
+                result = JsonataQ.evaluateNullLiteral((NullNode)expr); //, input, environment);
+                break;
+            case SymbolType._number_int:
+                result = JsonataQ.evaluateLiteralInt((NumberIntNode)expr); //, input, environment);
+                break;
+            case SymbolType._number_double:
+                result = JsonataQ.evaluateLiteralDouble((NumberDoubleNode)expr); //, input, environment);
+                break;
+            case SymbolType.wildcard:
+                result = JsonataQ.evaluateWildcard((WildcardNode)expr, input); //, environment);
+                break;
+            case SymbolType.descendant:
+                result = JsonataQ.evaluateDescendants((DescendantNode)expr, input); //, environment);
+                break;
+            case SymbolType.parent:
+                result = environment.Lookup(((ParentOptimizedNode)expr).slot.label);
+                break;
+            case SymbolType.condition:
+                result = JsonataQ.evaluateCondition((ConditionNode)expr, input, environment);
+                break;
+            case SymbolType.block:
+                result = JsonataQ.evaluateBlock((BlockNode)expr, input, environment);
+                break;
+            case SymbolType.bind:
+                result = JsonataQ.evaluateBindExpression((BindRuntimeNode)expr, input, environment);
+                break;
+            case SymbolType.regex:
+                result = JsonataQ.evaluateRegex((RegexNode)expr); //, input, environment);
+                break;
+            case SymbolType.function:
+                result = JsonataQ.evaluateFunction((FunctionalNode)expr, input, environment, null);
+                break;
+            case SymbolType.variable:
+                result = JsonataQ.evaluateVariable((VariableNode)expr, input, environment);
+                break;
+            case SymbolType.lambda:
+                result = JsonataQ.evaluateLambda((LambdaNode)expr, input, environment);
+                break;
+            case SymbolType.partial:
+                result = JsonataQ.evaluatePartialApplication((FunctionalNode)expr, input, environment);
+                break;
+            case SymbolType.apply:
+                result = JsonataQ.evaluateApplyExpression((ApplyNode)expr, input, environment);
+                break;
+            case SymbolType.transform:
+                result = JsonataQ.evaluateTransformExpression((TransformNode)expr, input, environment);
+                break;
+            default:
+                //no throws here in jsonata-js
+                result = JsonataQ.UNDEFINED;
+                break;
+            }
+
+            if (expr.predicate != null)
+            {
+                foreach (FilterRuntimeNode element in expr.predicate)
+                {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                    result = JsonataQ.evaluateFilter(element.expr, result, environment);
+                }
+            }
+
+            if ((expr.type != SymbolType.path) && expr.group != null)
+            {
+                result = JsonataQ.evaluateGroupExpression(expr.group, result, environment);
+            }
+
+            // mangle result (list of 1 element -> 1 element, empty list -> null)
+            if ((result is JsonataArray arrayResult) && arrayResult.sequence && !arrayResult.tupleStream)
+            {
+                if (expr.keepArray)
+                {
+                    arrayResult.keepSingleton = true;
+                }
+                if (arrayResult.Count == 0)
+                {
+                    result = JsonataQ.UNDEFINED;
+                }
+                else if (arrayResult.Count == 1)
+                {
+                    result = arrayResult.keepSingleton ? arrayResult : arrayResult.ChildrenTokens[0];
+                }
+            }
+
+            return result;
+            }
+            finally { environment.DecDepth(); }
+        }
+
+        /**
+         * Evaluate path expression against input data
+        * @param {Object} expr - JSONata expression
+        * @param {Object} input - Input data to evaluate against
+        * @param {Object} environment - Environment
+        * @returns {*} Evaluated input data
+        */
+        private static JToken evaluatePath(PathRuntimeNode expr, JToken input, EvaluationEnvironment environment)
+        {
+            JArray inputSequence;
+            // expr is an array of steps
+            // if the first step is a variable reference ($...), including root reference ($$),
+            //   then the path is absolute rather than relative
+            if (input is JArray inputArray && expr.steps[0].type != SymbolType.variable)
+            {
+                inputSequence = inputArray;
+            }
+            else
+            {
+                // if input is not an array, make it so
+                inputSequence = JsonataArray.CreateSequence(input);
+            }
+
+            JArray? resultSequence = default!;   //to suppress unitinialized error later
+            bool isTupleStream = false;
+            JArray? tupleBindings = null;
+
+            // evaluate each step in turn
+            for (int ii = 0; ii < expr.steps.Count; ++ii)
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                Node step = expr.steps[ii];
+
+                if (step.tuple)
+                {
+                    isTupleStream = true;
+                }
+
+                // if the first step is an explicit array constructor, then just evaluate that (i.e. don't iterate over a context array)
+                if (ii == 0 && step.consarray)
+                {
+                    resultSequence = (JArray)JsonataQ.evaluate(step, inputSequence, environment);
+                }
+                else
+                {
+                    if (isTupleStream)
+                    {
+                        tupleBindings = JsonataQ.evaluateTupleStep(step, inputSequence, tupleBindings, environment);
+                    }
+                    else
+                    {
+                        resultSequence = JsonataQ.evaluateStep(step, inputSequence, environment, ii == expr.steps.Count - 1);
+                    }
+                }
+
+                if (!isTupleStream && (resultSequence.Type == JTokenType.Undefined || resultSequence.ChildrenTokens.Count == 0))
+                {
+                    break;
+                }
+
+                if (step.focus == null)
+                {
+                    inputSequence = resultSequence;
+                }
+            }
+
+            if (isTupleStream)
+            {
+                if (tupleBindings == null)
+                {
+                    throw new Exception("Should not happen!");
+                }
+
+                if (expr.tuple) 
+                {
+                    // tuple stream is carrying ancestry information - keep this
+                    resultSequence = tupleBindings;
+                } 
+                else 
+                {
+                    resultSequence = JsonataArray.CreateSequence();
+                    for (int ii = 0; ii < tupleBindings.Count; ++ii) 
+                    {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                        JObject tuple = (JObject)tupleBindings.ChildrenTokens[ii];
+                        resultSequence.Add(tuple.Properties["@"]);
+                    }
+                }
+            }
+
+            if (expr.keepSingletonArray)
+            {
+                if (resultSequence is not JsonataArray resultSequenceAsJsonataArray)
+                {
+                    resultSequenceAsJsonataArray = new JsonataArray(resultSequence.ChildrenTokens);
+                    resultSequence = resultSequenceAsJsonataArray;
+                }
+
+                // if the array is explicitly constructed in the expression and marked to promote singleton sequences to array
+                if (resultSequenceAsJsonataArray.cons && !resultSequenceAsJsonataArray.sequence)
+                {
+                    resultSequenceAsJsonataArray = JsonataArray.CreateSequence(resultSequence);
+                    resultSequence = resultSequenceAsJsonataArray;
+                }
+                resultSequenceAsJsonataArray.keepSingleton = true;
+            }
+
+            if (expr.group != null)
+            {
+                JArray groupInput;
+                if (isTupleStream)
+                {
+                    if (tupleBindings == null)
+                    {
+                        throw new Exception("Should not happen");
+                    }
+                    groupInput = tupleBindings;
+                }
+                else
+                {
+                    groupInput = resultSequence;
+                }
+                JToken groupResult = JsonataQ.evaluateGroupExpression(expr.group, groupInput, environment);
+                return groupResult;
+            }
+
+            return resultSequence;
+        }
+
+        /**
+         * Evaluate a step within a path
+        * @param {Object} expr - JSONata expression
+        * @param {Object} input - Input data to evaluate against
+        * @param {Object} environment - Environment
+        * @param {boolean} lastStep - flag the last step in a path
+        * @returns {*} Evaluated input data
+        */
+        private static JArray evaluateStep(Node expr, JArray input, EvaluationEnvironment environment, bool lastStep)
+        {
+            if (expr.type == SymbolType.sort)
+            {
+                JArray sortResult = JsonataQ.evaluateSortExpression((SortStepRuntimeNode)expr, input, environment);
+                if (expr.stages != null)
+                {
+                    sortResult = JsonataQ.evaluateStages(expr.stages, sortResult, environment);
+                }
+                return sortResult;
+            }
+
+            JArray result = JsonataArray.CreateSequence();
+
+            foreach (JToken child in input.ChildrenTokens)
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                JToken res = JsonataQ.evaluate(expr, child, environment);
+                if (expr.stages != null)
+                {
+                    foreach (FilterRuntimeNode stage in expr.stages)
+                    {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                        res = JsonataQ.evaluateFilter(stage.expr, res, environment);
+                    }
+                }
+                if (res.Type != JTokenType.Undefined)
+                {
+                    result.Add(res);
+                }
+            }
+
+            JArray resultSequence;
+            if (lastStep 
+                && result.Count == 1 
+                && (result.ChildrenTokens[0] is JArray childArray) 
+                && ((childArray is not JsonataArray childJsonataArray) || !childJsonataArray.sequence)
+            )
+            {
+                resultSequence = childArray;
+            }
+            else
+            {
+                // flatten the sequence
+                resultSequence = JsonataArray.CreateSequence();
+                foreach (JToken res in result.ChildrenTokens)
+                {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                    if (!(res is JArray) || ((res is JsonataArray jsonataArray) && jsonataArray.cons))
+                    {
+                        // it's not an array - just push into the result sequence
+                        resultSequence.Add(res);
+                    }
+                    else
+                    {
+                        // res is a sequence - flatten it into the parent sequence
+                        resultSequence.AddAll(((JArray)res).ChildrenTokens);
+                    }
+                }
+            }
+
+            return resultSequence;
+        }
+
+        private static JArray evaluateStages(List<StageRuntimeNode> stages, JArray input, EvaluationEnvironment environment)
+        {
+            JArray result = input;
+            foreach (Node stage in stages) 
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                switch(stage.type) 
+                {
+                case SymbolType.filter:
+                    {
+                        FilterRuntimeNode filter = (FilterRuntimeNode)stage;
+                        result = JsonataQ.evaluateFilter(filter.expr, result, environment);
+                    }
+                    break;
+                case SymbolType.index:
+                    {
+                        IndexRuntimeNode index = (IndexRuntimeNode)stage;
+                        for (int ee = 0; ee < result.Count; ++ee)
+                        {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                            JObject tuple = (JObject)result.ChildrenTokens[ee];
+                            tuple.Set(index.indexValue, new JValue(ee));
+                        }
+                    }
+                    break;
+                default:
+                    throw new Exception($"Should not happen? {stage.type}");
+                }
+            }
+            return result;
+        }
+
+        private static EvaluationEnvironment createFrameFromTuple(EvaluationEnvironment environment, JObject tuple)
+        {
+            EvaluationEnvironment frame = EvaluationEnvironment.CreateNestedEnvironment(environment);
+            foreach (KeyValuePair<string, JToken> proprety in tuple.Properties)
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                frame.BindValue(proprety.Key, proprety.Value);
+            }
+            return frame;
+        }
+
+        /**
+         * Evaluate a step within a path
+        * @param {Object} expr - JSONata expression
+        * @param {Object} input - Input data to evaluate against
+        * @param {Object} tupleBindings - The tuple stream
+        * @param {Object} environment - Environment
+        * @returns {*} Evaluated input data
+        */
+        private static JArray evaluateTupleStep(Node expr, JArray input, JArray? tupleBindings, EvaluationEnvironment environment) 
+        {
+            JArray result;
+            if (expr.type == SymbolType.sort) 
+            {
+                if (tupleBindings != null) 
+                {
+                    result = JsonataQ.evaluateSortExpression((SortStepRuntimeNode)expr, tupleBindings, environment);
+                } 
+                else 
+                {
+                    JArray sorted = JsonataQ.evaluateSortExpression((SortStepRuntimeNode)expr, input, environment);
+                    result = JsonataArray.CreateSequence();
+                    ((JsonataArray)result).tupleStream = true;
+                    for (int ss = 0; ss < sorted.Count; ++ss) 
+                    {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                        JObject tuple = new JObject();
+                        tuple.Add("@", sorted.ChildrenTokens[ss]);
+                        tuple.Add(expr.index!, new JValue(ss));
+                        result.Add(tuple);
+                    }
+                }
+                if (expr.stages != null) 
+                {
+                    result = JsonataQ.evaluateStages(expr.stages, result, environment);
+                }
+                return result;
+            }
+
+            result = JsonataArray.CreateSequence();
+            ((JsonataArray)result).tupleStream = true;
+            if (tupleBindings == null) 
+            {
+                tupleBindings = new JArray();
+                tupleBindings.AddAll(input.ChildrenTokens.Select(t => {
+                    JObject tuple = new JObject();
+                    tuple.Add("@", t);
+                    return tuple;
+                }));
+            }
+
+            foreach (JObject binding in tupleBindings.ChildrenTokens) 
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                EvaluationEnvironment stepEnv = createFrameFromTuple(environment, binding);
+                JToken _res = JsonataQ.evaluate(expr, binding.Properties["@"], stepEnv);
+                // _res is the binding sequence for the output tuple stream
+                if (_res.Type != JTokenType.Undefined)
+                { 
+                    if (_res is not JArray res)
+                    {
+                        res = new JArray();
+                        res.Add(_res);
+                    }
+                    for (int bb = 0; bb < res.Count; ++bb)
+                    {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                        JObject tuple = new JObject();
+                        foreach (KeyValuePair<string, JToken> property in binding.Properties)
+                        {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                            tuple.Add(property.Key, property.Value);
+                        }
+                        if ((res is JsonataArray resArray) && resArray.tupleStream) 
+                        {
+                            JObject sourceChild = (JObject)resArray.ChildrenTokens[bb];
+                            foreach (KeyValuePair<string, JToken> property in sourceChild.Properties)
+                            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                                tuple.Set(property.Key, property.Value);
+                            }
+                        } 
+                        else 
+                        {
+                            if (expr.focus != null) 
+                            {
+                                tuple.Set(expr.focus, res.ChildrenTokens[bb]);
+                                tuple.Set("@", binding.Properties["@"]);
+                            } 
+                            else 
+                            {
+                                tuple.Set("@", res.ChildrenTokens[bb]);
+                            }
+                            if (expr.index != null)
+                            {
+                                tuple.Set(expr.index, new JValue(bb));
+                            }
+                            if (expr.ancestor != null) 
+                            {
+                                tuple.Set(expr.ancestor.label, binding.Properties["@"]);
+                            }
+                        }
+                        result.Add(tuple);
+                    }
+                }
+            }
+
+            if (expr.stages != null) 
+            {
+                result = JsonataQ.evaluateStages(expr.stages, result, environment);
+            }
+
+            return result;
+        }
+
+        /**
+         * Apply filter predicate to input data
+        * @param {Object} predicate - filter expression
+        * @param {Object} input - Input data to apply predicates against
+        * @param {Object} environment - Environment
+        * @returns {*} Result after applying predicates
+        */
+        private static JArray evaluateFilter(Node predicate, JToken input, EvaluationEnvironment environment)
+        {
+            JArray results = JsonataArray.CreateSequence();
+            bool tupleStream;
+            if ((input is JsonataArray inputJsonataArray) && inputJsonataArray.tupleStream)
+            {
+                ((JsonataArray)results).tupleStream = true;
+                tupleStream = true;
+            }
+            else
+            {
+                tupleStream = false;
+            }
+
+            if (input is not JArray inputArray)
+            {
+                inputArray = JsonataArray.CreateSequence(input);
+                input = inputArray;
+            }
+            if (predicate.type == SymbolType._number_int || predicate.type == SymbolType._number_double) 
+            {
+                int index;
+                if (predicate.type == SymbolType._number_double)
+                {
+                    double doubleValue = ((NumberDoubleNode)predicate).value;
+                    index = (int)Math.Floor(doubleValue); // round it down 
+                }
+                else
+                {
+                    long longValue = ((NumberIntNode)predicate).value;
+                    index = (int)longValue;
+                }
+                if (index < 0) 
+                {
+                    // count in from end of array
+                    index = inputArray.Count + index;
+                }
+                JToken item = index < inputArray.Count ? inputArray.ChildrenTokens[index] : JsonataQ.UNDEFINED;
+                if (item.Type != JTokenType.Undefined) 
+                {
+                    if (item is JArray) 
+                    {
+                        results = (JArray)item;
+                    } 
+                    else 
+                    {
+                        results.Add(item);
+                    }
+                }
+            } 
+            else 
+            {
+                for (int index = 0; index < inputArray.Count; ++index) 
+                {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                    JToken item = inputArray.ChildrenTokens[index];
+                    JToken context = item;
+                    EvaluationEnvironment env = environment;
+                    if (tupleStream) 
+                    {
+                        JObject itemObj = (JObject)item;
+                        context = itemObj.Properties["@"];
+                        env = JsonataQ.createFrameFromTuple(environment, itemObj);
+                    }
+                    JToken res = JsonataQ.evaluate(predicate, context, env);
+                    if (Helpers.IsNumeric(res)) 
+                    {
+                        JArray resArray = new JArray();
+                        resArray.Add(res);
+                        res = resArray;
+                    }
+                    if (Helpers.IsArrayOfNumbers(res)) 
+                    {
+                        foreach (JToken ires in ((JArray)res).ChildrenTokens) 
+                        {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                            // round it down
+                            int ii;
+                            switch (ires.Type)
+                            {
+                            case JTokenType.Integer:
+                                ii = (int)(JValue)ires;
+                                break;
+                            case JTokenType.Float:
+                                ii = (int)(double)(JValue)ires; // round it down
+                                break;
+                            default:
+                                throw new Exception("Should not happen");
+                            }
+                            if (ii < 0) 
+                            {
+                                // count in from end of array
+                                ii = inputArray.Count + ii;
+                            }
+                            if (ii == index) 
+                            {
+                                results.Add(item);
+                            }
+                        }
+                    } 
+                    else if (Eval.Helpers.Booleanize(res)) // truthy
+                    { 
+                        results.Add(item);
+                    }
+                }
+            }
+            return results;
+        }
+
+        /**
+         * Evaluate binary expression against input data
+        * @param {Object} expr - JSONata expression
+        * @param {Object} input - Input data to evaluate against
+        * @param {Object} environment - Environment
+        * @returns {*} Evaluated input data
+        */
+        private static JToken evaluateBinary(BinaryNode expr, JToken input, EvaluationEnvironment environment)
+        {
+            JToken result;
+            JToken lhs = JsonataQ.evaluate(expr.lhs, input, environment);
+
+            BinaryOperatorType op = expr.value;
+
+            if (op == BinaryOperatorType.and || op == BinaryOperatorType.or)
+            {
+                //defer evaluation of RHS to allow short-circuiting
+                Func<JToken> evalrhs = () => JsonataQ.evaluate(expr.rhs, input, environment);
+
+                return JsonataQ.evaluateBooleanExpression(lhs, evalrhs, op);
+            }
+
+            JToken rhs = evaluate(expr.rhs, input, environment); //evalrhs();
+            switch (op)
+            {
+            case BinaryOperatorType.add:
+            case BinaryOperatorType.sub:
+            case BinaryOperatorType.mul:
+            case BinaryOperatorType.div:
+            case BinaryOperatorType.mod:
+                result = JsonataQ.evaluateNumericExpression(lhs, rhs, op);
+                break;
+            case BinaryOperatorType.eq:
+            case BinaryOperatorType.ne:
+                result = JsonataQ.evaluateEqualityExpression(lhs, rhs, op);
+                break;
+            case BinaryOperatorType.lt:
+            case BinaryOperatorType.le:
+            case BinaryOperatorType.gt:
+            case BinaryOperatorType.ge:
+                result = JsonataQ.evaluateComparisonExpression(lhs, rhs, op);
+                break;
+            case BinaryOperatorType.concat:
+                result = JsonataQ.evaluateStringConcat(lhs, rhs);
+                break;
+            case BinaryOperatorType.range:
+                result = JsonataQ.evaluateRangeExpression(lhs, rhs);
+                break;
+            case BinaryOperatorType.@in:
+                result = JsonataQ.evaluateIncludesExpression(lhs, rhs);
+                break;
+            default:
+                throw new Exception($"Unexpected operator '{op}' at {expr.position}");
+            }
+
+            return result;
+        }
+
+        /**
+         * Evaluate unary expression against input data
+        * @param {Object} expr - JSONata expression
+        * @param {Object} input - Input data to evaluate against
+        * @param {Object} environment - Environment
+        * @returns {*} Evaluated input data
+        */
+        private static JToken evaluateUnaryMinus(UnaryMinusNode expr, JToken input, EvaluationEnvironment environment)
+        {
+            JToken result = JsonataQ.evaluate(expr.expression, input, environment);
+            switch (result.Type)
+            {
+            case JTokenType.Undefined:
+                return JsonataQ.UNDEFINED;
+            case JTokenType.Integer:
+                return new JValue(-(long)result);
+            case JTokenType.Float:
+                return new JValue(-(double)result);
+            default:
+                throw new JsonataException(JsonataErrorCode.D1002, $"Cannot negate a non-numeric value: {result.ToFlatString()} ({result.Type})");
+            }
+        }
+
+        private static JToken evaluateUnaryArray(ArrayNode expr, JToken input, EvaluationEnvironment environment)
+        {
+            // array constructor - evaluate each item
+            JArray result = new JArray();
+            foreach (Node item in expr.expressions)
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                JToken value = JsonataQ.evaluate(item, input, environment);
+                if (value.Type != JTokenType.Undefined)
+                {
+                    //if ("[".Equals(item.value))
+                    if (item.type == SymbolType._unary_array)
+                    {
+                        result.Add(value);
+                    }
+                    else
+                    {
+                        result = (JArray)BuiltinFunctions.append(result, value);
+                    }
+                }
+            }
+            if (expr.consarray)
+            {
+                if (result is not JsonataArray jsonataArray)
+                {
+                    jsonataArray = new JsonataArray(result.ChildrenTokens);
+                    result = jsonataArray;
+                }
+                jsonataArray.cons = true;
+            }
+            return result;
+
+        }
+
+        /**
+         * Evaluate name object against input data
+        * @param {Object} expr - JSONata expression
+        * @param {Object} input - Input data to evaluate against
+        * @param {Object} environment - Environment
+        * @returns {*} Evaluated input data
+        */
+        private static JToken evaluateName(NameNode expr, JToken input, EvaluationEnvironment environment)
+        {
+            // lookup the "name" item in the input
+            return BuiltinFunctions.lookup(input, expr.value);
+        }
+
+        private static JToken evaluateLiteralInt(NumberIntNode expr)
+        {
+            return new JValue(expr.value);
+        }
+
+        private static JToken evaluateLiteralDouble(NumberDoubleNode expr)
+        {
+            return new JValue(expr.value);
+        }
+
+        private static JToken evaluateStringLiteral(StringNode expr)
+        {
+            return new JValue(expr.value);
+        }
+
+        private static JToken evaluateBoolLiteral(BoolNode expr)
+        {
+            return new JValue(expr.value);
+        }
+
+        private static JToken evaluateNullLiteral(NullNode expr)
+        {
+            return JValue.CreateNull();
+        }
+
+        /**
+         * Evaluate wildcard against input data
+        * @param {Object} expr - JSONata expression
+        * @param {Object} input - Input data to evaluate against
+        * @returns {*} Evaluated input data
+        */
+        private static JToken evaluateWildcard(WildcardNode expr, JToken input)
+        {
+            JsonataArray results = JsonataArray.CreateSequence();
+            if ((input is JsonataArray arrayInput) && arrayInput.outerWrapper && arrayInput.Count > 0)
+            {
+                input = arrayInput.ChildrenTokens[0];
+            }
+            if (input is JObject objectInput)   // typeof input === "object") {
+            {
+                foreach (KeyValuePair<string, JToken> kvp in objectInput.Properties)
+                {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                    // Object.keys(input).forEach(Object (key) {
+                    JToken value = kvp.Value;
+                    if (value is JArray)
+                    {
+                        JToken flatValue = JsonataQ.flatten(value, null);
+                        results = (JsonataArray)BuiltinFunctions.append(results, flatValue);    //because `results` arg is a JsonataArray, result is also a JsonataArray, so it's safe to cast
+                    }
+                    else
+                    {
+                        results.Add(value);
+                    }
+                }
+            }
+            else if (input is JArray inputArray)
+            {
+                // Java: need to handle List separately
+                foreach (JToken value in inputArray.ChildrenTokens)
+                {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                    if (value is JArray)
+                    {
+                        JToken flatValue = JsonataQ.flatten(value, null);
+                        results = (JsonataArray)BuiltinFunctions.append(results, flatValue);    //because `results` arg is a JsonataArray, result is also a JsonataArray, so it's safe to cast
+                    }
+                    else
+                    {
+                        results.Add(value);
+                    }
+                }
+            }
+
+            // result = normalizeSequence(results);
+            return results;
+        }
+
+        /**
+         * Returns a flattened array
+        * @param {Array} arg - the array to be flatten
+        * @param {Array} flattened - carries the flattened array - if not defined, will initialize to []
+        * @returns {Array} - the flattened array
+        */
+        private static JArray flatten(JToken arg, JArray? flattened)
+        {
+            if (flattened == null)
+            {
+                flattened = new JArray();
+            }
+            if (arg is JArray arrayArg)
+            {
+                foreach (JToken item in arrayArg.ChildrenTokens)
+                {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                    JsonataQ.flatten(item, flattened);
+                }
+            }
+            else
+            {
+                flattened.Add(arg);
+            }
+            return flattened;
+        }
+
+        /**
+         * Evaluate descendants against input data
+        * @param {Object} expr - JSONata expression
+        * @param {Object} input - Input data to evaluate against
+        * @returns {*} Evaluated input data
+        */
+        private static JToken evaluateDescendants(DescendantNode expr, JToken input)
+        {
+            JToken result;
+            if (input.Type != JTokenType.Undefined)
+            {
+                // traverse all descendants of this object/array
+                JsonataArray resultSequence = JsonataArray.CreateSequence();
+                JsonataQ.recurseDescendants(input, resultSequence);
+                if (resultSequence.Count == 1)
+                {
+                    result = resultSequence.ChildrenTokens[0];
+                }
+                else
+                {
+                    result = resultSequence;
+                }
+            }
+            else
+            {
+                result = JsonataQ.UNDEFINED;
+            }
+            return result;
+        }
+
+        /**
+         * Recurse through descendants
+        * @param {Object} input - Input data
+        * @param {Object} results - Results
+        */
+        private static void recurseDescendants(JToken input, JArray results)
+        {
+            // this is the equivalent of //* in XPath
+            if (input is not JArray)
+            {
+                results.Add(input);
+            }
+            if (input is JArray inputArray)
+            {
+                foreach (JToken member in inputArray.ChildrenTokens)
+                {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                    JsonataQ.recurseDescendants(member, results);
+                }
+            }
+            else if (input is JObject objectInput)
+            {
+                //Object.keys(input).forEach(Object (key) {
+                foreach (JToken value in objectInput.Properties.Values)
+                {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                    JsonataQ.recurseDescendants(value, results);
+                }
+            }
+        }
+
+        /**
+         * Evaluate numeric expression against input data
+         * @param {Object} lhs - LHS value
+         * @param {Object} rhs - RHS value
+         * @param {Object} op - opcode
+         * @returns {*} Result
+         */
+        private static JToken evaluateNumericExpression(JToken lhs, JToken rhs, BinaryOperatorType op)
+        {
+            if (lhs.Type != JTokenType.Undefined && !Helpers.IsNumeric(lhs))
+            {
+                throw new JsonataException(JsonataErrorCode.T2001, $"The left side of the {op} operator must evaluate to a number");
+            }
+            if (rhs.Type != JTokenType.Undefined && !Helpers.IsNumeric(rhs))
+            {
+                throw new JsonataException(JsonataErrorCode.T2002, $"The right side of the {op} operator must evaluate to a number");
+            }
+
+            if (lhs.Type == JTokenType.Undefined || rhs.Type == JTokenType.Undefined)
+            {
+                // if either side is undefined, the result is undefined
+                return JsonataQ.UNDEFINED;
+            }
+
+            if (lhs.Type == JTokenType.Undefined || rhs.Type == JTokenType.Undefined)
+            {
+                return JsonataQ.UNDEFINED;
+            }
+            else if (lhs.Type == JTokenType.Integer && rhs.Type == JTokenType.Integer)
+            {
+                if (op == BinaryOperatorType.div)
+                {
+                    //divide is still in double
+                    return evalDoubleOperator((long)lhs, (long)rhs, op);
+                }
+                else
+                {
+                    return evalIntOperator((long)lhs, (long)rhs, op);
+                }
+            }
+            else if (lhs.Type == JTokenType.Float && rhs.Type == JTokenType.Float)
+            {
+                return evalDoubleOperator((double)lhs, (double)rhs, op);
+            }
+            else if (lhs.Type == JTokenType.Float && rhs.Type == JTokenType.Integer)
+            {
+                return evalDoubleOperator((double)lhs, (double)(long)rhs, op);
+            }
+            else if (lhs.Type == JTokenType.Integer && rhs.Type == JTokenType.Float)
+            {
+                return evalDoubleOperator((double)(long)lhs, (double)rhs, op);
+            }
+            else if (lhs.Type != JTokenType.Float && lhs.Type != JTokenType.Integer)
+            {
+                throw new JsonataException(JsonataErrorCode.T2001, $"The left side of the {op} operator must evaluate to a number");
+            }
+            else
+            {
+                throw new JsonataException(JsonataErrorCode.T2002, $"The right side of the {op} operator must evaluate to a number");
+            }
+        }
+
+        private static JToken evalIntOperator(long lhs, long rhs, BinaryOperatorType op)
+        {
+            long resultLong = op switch {
+                BinaryOperatorType.add => lhs + rhs,
+                BinaryOperatorType.sub => lhs - rhs,
+                BinaryOperatorType.mul => lhs * rhs,
+                BinaryOperatorType.div => lhs / rhs,
+                BinaryOperatorType.mod => lhs % rhs,
+                _ => throw new ArgumentException($"Unexpected operator '{op}'")
+            };
+            decimal resultDecimal = op switch {
+                BinaryOperatorType.add => (decimal)lhs + (decimal)rhs,
+                BinaryOperatorType.sub => (decimal)lhs - (decimal)rhs,
+                BinaryOperatorType.mul => (decimal)lhs * (decimal)rhs,
+                BinaryOperatorType.div => (decimal)lhs / (decimal)rhs,
+                BinaryOperatorType.mod => (decimal)lhs % (decimal)rhs,
+                _ => throw new ArgumentException($"Unexpected operator '{op}'")
+            };
+
+            //handling long overflows
+            if (resultDecimal != resultLong)
+            {
+                return new JValue(resultDecimal);
+            }
+            else
+            {
+                return new JValue(resultLong);
+            }
+        }
+
+        private static JToken evalDoubleOperator(double lhs, double rhs, BinaryOperatorType op)
+        {
+            double result = op switch {
+                BinaryOperatorType.add => lhs + rhs,
+                BinaryOperatorType.sub => lhs - rhs,
+                BinaryOperatorType.mul => lhs * rhs,
+                BinaryOperatorType.div => lhs / rhs,
+                BinaryOperatorType.mod => lhs % rhs,
+                _ => throw new ArgumentException($"Unexpected operator '{op}'")
+            };
+            long longResult = (long)result;
+            if (longResult == result)
+            {
+                return new JValue(longResult);
+            }
+            else
+            {
+                return new JValue(result);
+            }
+        }
+
+
+        /**
+         * Evaluate equality expression against input data
+         * @param {Object} lhs - LHS value
+         * @param {Object} rhs - RHS value
+         * @param {Object} op - opcode
+         * @returns {*} Result
+         */
+        private static JToken evaluateEqualityExpression(JToken lhs, JToken rhs, BinaryOperatorType op)
+        {
+            if (lhs.Type == JTokenType.Undefined || rhs.Type == JTokenType.Undefined)
+            {
+                // if either side is undefined, the result is false
+                return new JValue(false);
+            }
+
+            bool result;
+            switch (op) 
+            {
+            case BinaryOperatorType.eq:
+                result = JToken.DeepEquals(lhs, rhs);
+                break;
+            case BinaryOperatorType.ne:
+                result = !JToken.DeepEquals(lhs, rhs);
+                break;
+            default:
+                throw new Exception("Should not happen " + op);
+            }
+            return new JValue(result);
+        }
+
+        /**
+         * Evaluate comparison expression against input data
+         * @param {Object} lhs - LHS value
+         * @param {Object} rhs - RHS value
+         * @param {Object} op - opcode
+         * @returns {*} Result
+         */
+        private static JToken evaluateComparisonExpression(JToken lhs, JToken rhs, BinaryOperatorType op)
+        {
+            bool lcomparable = JsonataQ.isComparable(lhs);
+            bool rcomparable = JsonataQ.isComparable(rhs);
+
+            // if either aa or bb are not comparable (string or numeric) values, then throw an error
+            if (!lcomparable || !rcomparable)
+            {
+                throw new JsonataException(JsonataErrorCode.T2010, $"The expressions either side of operator {op} must evaluate to numeric or string values");
+            }
+
+            // if either side is undefined, the result is undefined
+            if (lhs.Type == JTokenType.Undefined || rhs.Type == JTokenType.Undefined)
+            {
+                return JsonataQ.UNDEFINED;
+            }
+
+            if (lhs.Type == JTokenType.Integer && rhs.Type == JTokenType.Float)
+            {
+                lhs = new JValue((double)(int)lhs);
+            }
+            else if (rhs.Type == JTokenType.Integer && lhs.Type == JTokenType.Float)
+            {
+                rhs = new JValue((double)(int)rhs);
+            }
+
+            //if aa and bb are not of the same type
+            if (lhs.Type != rhs.Type)
+            {
+                throw new JsonataException(JsonataErrorCode.T2009, $"The values {lhs.ToFlatString()} and {rhs.ToFlatString()} either side of operator {op} must be of the same data type");
+            }
+            if (lhs.Type == JTokenType.String)
+            {
+                return compareStrings(op, (string)lhs!, (string)rhs!);
+            }
+            else if (lhs.Type == JTokenType.Integer)
+            {
+                return compareInts(op, (long)lhs, (long)rhs);
+            }
+            else if (lhs.Type == JTokenType.Float)
+            {
+                return compareDoubles(op, (double)lhs, (double)rhs);
+            }
+            else
+            {
+                throw new Exception("Should not happen");
+            }
+        }
+
+
+		private static bool isComparable(JToken token)
+        {
+            return token.Type == JTokenType.Integer
+                || token.Type == JTokenType.Float
+                || token.Type == JTokenType.String
+                || token.Type == JTokenType.Undefined;
+        }
+
+        private static JToken compareDoubles(BinaryOperatorType op, double lhs, double rhs)
+        {
+            switch (op)
+            {
+            case BinaryOperatorType.lt:
+                return new JValue(lhs < rhs);
+            case BinaryOperatorType.le:
+                return new JValue(lhs <= rhs);
+            case BinaryOperatorType.gt:
+                return new JValue(lhs > rhs);
+            case BinaryOperatorType.ge:
+                return new JValue(lhs >= rhs);
+            default:
+                throw new Exception("Should not happen");
+            }
+        }
+
+        private static JToken compareInts(BinaryOperatorType op, long lhs, long rhs)
+        {
+            switch (op)
+            {
+            case BinaryOperatorType.lt:
+                return new JValue(lhs < rhs);
+            case BinaryOperatorType.le:
+                return new JValue(lhs <= rhs);
+            case BinaryOperatorType.gt:
+                return new JValue(lhs > rhs);
+            case BinaryOperatorType.ge:
+                return new JValue(lhs >= rhs);
+            default:
+                throw new Exception("Should not happen");
+            }
+        }
+
+        private static JToken compareStrings(BinaryOperatorType op, string lhs, string rhs)
+        {
+            switch (op)
+            {
+            case BinaryOperatorType.lt:
+                return new JValue(String.CompareOrdinal(lhs, rhs) < 0);
+            case BinaryOperatorType.le:
+                return new JValue(String.CompareOrdinal(lhs, rhs) <= 0);
+            case BinaryOperatorType.gt:
+                return new JValue(String.CompareOrdinal(lhs, rhs) > 0);
+            case BinaryOperatorType.ge:
+                return new JValue(String.CompareOrdinal(lhs, rhs) >= 0);
+            default:
+                throw new Exception("Should not happen");
+            }
+        }
+
+        /**
+         * Inclusion operator - in
+         *
+         * @param {Object} lhs - LHS value
+         * @param {Object} rhs - RHS value
+         * @returns {boolean} - true if lhs is a member of rhs
+         */
+        private static JToken evaluateIncludesExpression(JToken lhs, JToken rhs)
+        {
+            if (lhs.Type == JTokenType.Undefined || rhs.Type == JTokenType.Undefined)
+            {
+                // if either side is undefined, the result is false
+                return new JValue(false);
+            }
+
+            if (rhs is not JArray rhsArray)
+            {
+                rhsArray = new JArray();
+                rhsArray.Add(rhs);
+            }
+
+            foreach (JToken rhsItem in rhsArray.ChildrenTokens)
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                JValue res = (JValue)JsonataQ.evaluateEqualityExpression(lhs, rhsItem, BinaryOperatorType.eq);
+                if (res.Type == JTokenType.Boolean && (bool)res)
+                {
+                    return res;
+                }
+            }
+
+            return new JValue(false);
+        }
+
+        /**
+         * Evaluate boolean expression against input data
+         * @param {Object} lhs - LHS value
+         * @param {Function} evalrhs - Object to evaluate RHS value
+         * @param {Object} op - opcode
+         * @returns {*} Result
+         */
+        private static JToken evaluateBooleanExpression(JToken lhs, Func<JToken> evalrhs, BinaryOperatorType op)
+        {
+            bool lBool = Eval.Helpers.Booleanize(lhs);
+            bool result;
+            switch (op)
+            {
+            case BinaryOperatorType.and:
+                result = lBool && Eval.Helpers.Booleanize(evalrhs.Invoke());
+                break;
+            case BinaryOperatorType.or:
+                result = lBool || Eval.Helpers.Booleanize(evalrhs.Invoke());
+                break;
+            default:
+                throw new Exception("Should not happen " + op);
+            }
+            return new JValue(result);
+        }
+
+        /**
+         * Evaluate string concatenation against input data
+         * @param {Object} lhs - LHS value
+         * @param {Object} rhs - RHS value
+         * @returns {string|*} Concatenated string
+         */
+        private static JToken evaluateStringConcat(JToken lhs, JToken rhs)
+        {
+            String result;
+
+            string lstr = "";
+            string rstr = "";
+            if (lhs.Type != JTokenType.Undefined)
+            {
+                lstr = (string)(JValue)BuiltinFunctions.@string(lhs, prettify: false);
+            }
+            if (rhs.Type != JTokenType.Undefined)
+            {
+                rstr = (string)(JValue)BuiltinFunctions.@string(rhs, prettify: false); ;
+            }
+
+            result = lstr + rstr;
+            return new JValue(result);
+        }
+
+        private sealed class GroupEntry 
+        {
+            internal JToken data;
+            internal int exprIndex;
+
+            public GroupEntry(JToken data, int exprIndex)
+            {
+                this.data = data;
+                this.exprIndex = exprIndex;
+            }
+        }
+
+        /**
+         * Evaluate group expression against input data
+         * @param {Object} expr - JSONata expression
+         * @param {Object} input - Input data to evaluate against
+         * @param {Object} environment - Environment
+         * @returns {{}} Evaluated input data
+         */
+        private static JToken evaluateGroupExpression(GroupNode expr, JToken _input, EvaluationEnvironment environment)
+        {
+            bool reduce = (_input is JsonataArray jsonataArrayInput) && jsonataArrayInput.tupleStream;
+            // group the input sequence by "key" expression
+            if (_input is not JArray input) 
+            {
+                input = JsonataArray.CreateSequence(_input);
+            }
+
+            // if the array is empty, add an undefined entry to enable literal JSON object to be generated
+            if (input.Count == 0) 
+            {
+                input.Add(JsonataQ.UNDEFINED);
+            }
+
+            Dictionary<string, GroupEntry> groups = new();
+            foreach (JToken item in input.ChildrenTokens) 
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                EvaluationEnvironment env = reduce ? JsonataQ.createFrameFromTuple(environment, (JObject)item) : environment;
+                for (int pairIndex = 0; pairIndex < expr.lhsObject!.Count; ++pairIndex) 
+                {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                    Tuple<Node, Node> pair = expr.lhsObject[pairIndex];
+                    JToken key = JsonataQ.evaluate(pair.Item1, reduce ? ((JObject)item).Properties["@"] : item, env);
+                    // key has to be a string
+                    switch (key.Type)
+                    {
+                    case JTokenType.Undefined:
+                        //just skip
+                        break;
+                    case JTokenType.String:
+                        {
+                            string keyStr = (string)(JValue)key;
+                            if (groups.TryGetValue(keyStr, out GroupEntry? existingEntry))
+                            {
+                                // a value already exists in this slot
+                                if (existingEntry.exprIndex != pairIndex)
+                                {
+                                    // this key has been generated by another expression in this group
+                                    // when multiple key expressions evaluate to the same key, then error D1009 must be thrown
+                                    throw new JsonataException(JsonataErrorCode.D1009, $"Multiple key definitions evaluate to same key: {keyStr}", expr.position);
+                                }
+
+                                // append it as an array
+                                existingEntry.data = BuiltinFunctions.append(existingEntry.data, item);
+                            }
+                            else
+                            {
+                                groups.Add(keyStr, new GroupEntry(item, pairIndex));
+                            }
+                        }
+                        break;
+                    default:
+                        throw new JsonataException(JsonataErrorCode.T1003, $"Key in object structure must evaluate to a string; got: {key.ToFlatString()} ({key.Type})", expr.position);
+                    }
+                }
+            }
+
+            JObject result = new JObject();
+            // iterate over the groups to evaluate the "value" expression
+            foreach (KeyValuePair<string, GroupEntry> groupProperty in groups)
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent(); 
+                GroupEntry entry = groupProperty.Value;
+                JToken context = entry.data;
+                EvaluationEnvironment env = environment;
+                if (reduce) 
+                {
+                    JObject tuple = JsonataQ.reduceTupleStream(entry.data);
+                    context = tuple.Properties["@"];
+                    tuple.Remove("@");
+                    env = JsonataQ.createFrameFromTuple(environment, tuple);
+                }
+                //env.isParallelCall = idx > 0;
+                //return [key,  evaluate(expr.lhs[entry.exprIndex][1], context, env)];
+                JToken res = JsonataQ.evaluate(expr.lhsObject![entry.exprIndex].Item2, context, env);
+                if (res.Type != JTokenType.Undefined)
+                {
+                    result.Set(groupProperty.Key, res);
+                }
+            }
+            return result;
+        }
+
+        private static JObject reduceTupleStream(JToken _tupleStream) 
+        {
+            if (_tupleStream is not JArray tupleStream) 
+            {
+                if (_tupleStream.Type != JTokenType.Object)
+                {
+                    throw new Exception("Should not happen!");
+                }
+                return (JObject)_tupleStream;
+            }
+            JObject result = new JObject();
+            if (tupleStream.ChildrenTokens.Count == 0)
+            {
+                throw new Exception("Should not happen!");
+            }
+            foreach (KeyValuePair<string, JToken> property in ((JObject)tupleStream.ChildrenTokens[0]).Properties)
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                result.Add(property.Key, property.Value);
+            }
+            for (int ii = 1; ii < tupleStream.ChildrenTokens.Count; ++ii)
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                JObject child = (JObject)tupleStream.ChildrenTokens[ii];
+                foreach (KeyValuePair<string, JToken> property in child.Properties)
+                {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                    if (!result.Properties.TryGetValue(property.Key, out JToken? existingValue))
+                    {
+                        existingValue = JsonataQ.UNDEFINED;
+                    }
+                    result.Set(property.Key, BuiltinFunctions.append(existingValue, property.Value));
+                }
+            }
+            return result;
+        }
+
+        /**
+         * Evaluate range expression against input data
+         * @param {Object} lhs - LHS value
+         * @param {Object} rhs - RHS value
+         * @returns {Array} Resultant array
+         */
+        private static JToken evaluateRangeExpression(JToken lhs, JToken rhs)
+        {
+            if (lhs.Type != JTokenType.Undefined && lhs.Type != JTokenType.Integer) 
+            {
+                throw new JsonataException(JsonataErrorCode.T2003, $"The left side of the range operator (..) must evaluate to an integer. Got {lhs.ToFlatString()} ({lhs.Type})");
+            }
+            if (rhs.Type != JTokenType.Undefined && rhs.Type != JTokenType.Integer) 
+            {
+                throw new JsonataException(JsonataErrorCode.T2004, $"The right side of the range operator (..) must evaluate to an integer. Got {rhs.ToFlatString()} ({rhs.Type})");
+            }
+
+            if (lhs.Type == JTokenType.Undefined || rhs.Type == JTokenType.Undefined) 
+            {
+                // if either side is undefined, the result is undefined
+                return JsonataQ.UNDEFINED;
+            }
+
+            long _lhs = (long)(JValue)lhs;
+            long _rhs = (long)(JValue)rhs;
+
+            if (_lhs > _rhs) 
+            {
+                // if the lhs is greater than the rhs, return undefined
+                return JsonataQ.UNDEFINED;
+            }
+
+            // limit the size of the array to ten million entries (1e7)
+            // this is an implementation defined limit to protect against
+            // memory and performance issues.  This value may increase in the future.
+            decimal size = (decimal)_rhs - _lhs + 1;
+            Projecta.Execution.EvaluationBudget.Current?.CheckRange(size);
+            if (size > 100_000) 
+            {
+                throw new JsonataException(JsonataErrorCode.D2014, $"The size of the sequence allocated by the range operator (..) must not exceed 100000.  Attempted to allocate {size}.");
+            }
+
+            JsonataArray result = JsonataArray.CreateSequence();
+            // Count-based traversal avoids overflow/infinite loops when rhs == long.MaxValue.
+            for (int index = 0; index < (int)size; ++index)
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                result.Add(new JValue(checked(_lhs + index)));
+            }
+
+            return result;
+        }
+
+        /**
+         * Evaluate bind expression against input data
+         * @param {Object} expr - JSONata expression
+         * @param {Object} input - Input data to evaluate against
+         * @param {Object} environment - Environment
+         * @returns {*} Evaluated input data
+         */
+        private static JToken evaluateBindExpression(BindRuntimeNode expr, JToken input, EvaluationEnvironment environment)
+        {
+            // The RHS is the expression to evaluate
+            // The LHS is the name of the variable to bind to - should be a VARIABLE token (enforced by parser)
+            JToken value = JsonataQ.evaluate(expr.rhs, input, environment);
+            environment.BindValue(expr.lhs.value, value);
+            return value;
+        }
+
+        /**
+         * Evaluate condition against input data
+         * @param {Object} expr - JSONata expression
+         * @param {Object} input - Input data to evaluate against
+         * @param {Object} environment - Environment
+         * @returns {*} Evaluated input data
+         */
+        private static JToken evaluateCondition(ConditionNode expr, JToken input, EvaluationEnvironment environment)
+        {
+            JToken result;
+            JToken condition = JsonataQ.evaluate(expr.condition, input, environment);
+            if (Eval.Helpers.Booleanize(condition))
+            {
+                result = JsonataQ.evaluate(expr.then, input, environment);
+            }
+            else if (expr.@else != null)
+            {
+                result = evaluate(expr.@else, input, environment);
+            }
+            else
+            {
+                result = JsonataQ.UNDEFINED;
+            }
+            return result;
+        }
+
+        /**
+         * Evaluate block against input data
+         * @param {Object} expr - JSONata expression
+         * @param {Object} input - Input data to evaluate against
+         * @param {Object} environment - Environment
+         * @returns {*} Evaluated input data
+         */
+        private static JToken evaluateBlock(BlockNode expr, JToken input, EvaluationEnvironment environment)
+        {
+
+            // create a new frame to limit the scope of variable assignments
+            // TODO, only do this if the post-parse stage has flagged this as required
+            EvaluationEnvironment frame = EvaluationEnvironment.CreateNestedEnvironment(environment);
+            // invoke each expression in turn
+            // only return the result of the last one
+            JToken result = JsonataQ.UNDEFINED;
+            foreach (Node ex in expr.expressions)
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                result = JsonataQ.evaluate(ex, input, frame);
+            }
+            return result;
+        }
+
+        /**
+         * Prepare a regex
+         * @param {Object} expr - expression containing regex
+         * @returns {Function} Higher order Object representing prepared regex
+         */
+        private static JToken evaluateRegex(RegexNode expr)
+        {
+            Regex re = expr.regex;
+            return new FunctionTokenRegex(re);
+        }
+
+        /**
+         * Evaluate variable against input data
+         * @param {Object} expr - JSONata expression
+         * @param {Object} input - Input data to evaluate against
+         * @param {Object} environment - Environment
+         * @returns {*} Evaluated input data
+         */
+        private static JToken evaluateVariable(VariableNode expr, JToken input, EvaluationEnvironment environment)
+        {
+            // lookup the variable value in the environment
+            JToken result;
+            // if the variable name is empty string, then it refers to context value
+            if (expr.value == "")
+            {
+                // Empty string == "$" !
+                result = ((input is JsonataArray arrayInput) && arrayInput.outerWrapper) ? arrayInput.ChildrenTokens[0] : input;
+            }
+            else
+            {
+                result = environment.Lookup(expr.value);
+            }
+            return result;
+        }
+
+        /**
+         * sort / order-by operator
+         * @param {Object} expr - AST for operator
+         * @param {Object} input - Input data to evaluate against
+         * @param {Object} environment - Environment
+         * @returns {*} Ordered sequence
+         */
+        private static JArray evaluateSortExpression(SortStepRuntimeNode expr, JArray input, EvaluationEnvironment environment)
+        {
+            // evaluate the lhs, then sort the results in order according to rhs expression
+            bool isTupleSort = (input is JsonataArray jsonataInput) && jsonataInput.tupleStream;
+
+            // sort the lhs array
+            // use comparator function
+            
+            bool comparator(JToken a, JToken b)
+            { 
+                // expr.terms is an array of order-by in priority order
+                int comp = 0;
+                for (int index = 0; comp == 0 && index < expr.terms.Count; ++index) 
+                {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                    SortTermNode term = expr.terms[index];
+                    //evaluate the sort term in the context of a
+                    JToken context = a;
+                    EvaluationEnvironment env = environment;
+                    if (isTupleSort) 
+                    {
+                        JObject aObj = (JObject)a;
+                        context = aObj.Properties["@"];
+                        env = JsonataQ.createFrameFromTuple(environment, aObj);
+                    }
+                    JToken aa = JsonataQ.evaluate(term.expression, context, env);
+
+                    //evaluate the sort term in the context of b
+                    context = b;
+                    env = environment;
+                    if (isTupleSort) 
+                    {
+                        JObject bObj = (JObject)b;
+                        context = bObj.Properties["@"];
+                        env = JsonataQ.createFrameFromTuple(environment, bObj);
+                    }
+                    JToken bb = JsonataQ.evaluate(term.expression, context, env);
+ 
+                    // type checks
+                    // undefined should be last in sort order
+                    if (aa.Type == JTokenType.Undefined) 
+                    {
+                        // swap them, unless btype is also undefined
+                        comp = (bb.Type == JTokenType.Undefined) ? 0 : 1;
+                        continue;
+                    }
+                    if (bb.Type == JTokenType.Undefined) 
+                    {
+                        comp = -1;
+                        continue;
+                    }
+ 
+                    // if aa or bb are not string or numeric values, then throw an error
+                    if (aa.Type != JTokenType.Integer && aa.Type != JTokenType.Float && aa.Type != JTokenType.String)
+                    {
+                        throw new JsonataException(JsonataErrorCode.T2008, $"The expressions within an order-by clause must evaluate to numeric or string values. Got {aa.ToFlatString()} ({aa.Type})", expr.position);
+                    }
+                    if (bb.Type != JTokenType.Integer && bb.Type != JTokenType.Float && bb.Type != JTokenType.String)
+                    {
+                        throw new JsonataException(JsonataErrorCode.T2008, $"The expressions within an order-by clause must evaluate to numeric or string values. Got {bb.ToFlatString()} ({bb.Type})", expr.position);
+                    }
+
+                    JValue aaValue = (JValue)aa;
+                    JValue bbValue = (JValue)bb;
+
+                    if (aaValue.Type == JTokenType.String && bbValue.Type == JTokenType.String)
+                    {
+                        string aaStr = (string)aaValue;
+                        string bbStr = (string)bbValue;
+                        comp = StringComparer.Ordinal.Compare(aaStr, bbStr);
+                        if (comp == 0)
+                        {
+                            // both the same - move on to next term
+                            continue;
+                        }
+                    }
+                    else if (aaValue.Type == JTokenType.String || bbValue.Type == JTokenType.String)
+                    {
+                        //if aa and bb are not of the same type
+                        throw new JsonataException(JsonataErrorCode.T2007, $"Type mismatch when comparing values {aa.ToFlatString()} ({aa.Type}) and {bb.ToFlatString()} ({bb.Type}) in order-by clause", expr.position);
+                    }
+                    else if (aaValue.Type == JTokenType.Integer && bbValue.Type == JTokenType.Integer)
+                    {
+                        long aaLong = (long)aaValue;
+                        long bbLong = (long)bbValue;
+                        comp = aaLong.CompareTo(bbLong);
+                        if (comp == 0)
+                        {
+                            // both the same - move on to next term
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        double aaDouble = aaValue.Type == JTokenType.Float? (double)aaValue : (double)(long)aaValue;
+                        double bbDouble = bbValue.Type == JTokenType.Float ? (double)bbValue : (double)(long)bbValue;
+                        comp = aaDouble.CompareTo(bbDouble);
+                        if (comp == 0)
+                        {
+                            // both the same - move on to next term
+                            continue;
+                        }
+                    }
+                    if (term.descending) 
+                    {
+                        comp = -comp;
+                    }
+                }
+                // only swap a & b if comp equals 1
+                // return comp == 1;
+                return comp > 0;
+            }
+
+            // TODO: this
+            // var focus = {
+            //     environment: environment,
+            //     input: input
+            // };
+            // // the `focus` is passed in as the `this` for the invoked function
+            // result = await fn.sort.apply(focus, [lhs, comparator]);
+            //
+            // but `this` is not being used in builtin sort ..
+
+            //TODO: think of Undefined (
+            // not currently possible here because result is expected to be JArray
+            //if (lhs.Type == JTokenType.Undefined)
+            //{
+            //    return JsonataQ.UNDEFINED;
+            //}
+            JArray result = BuiltinFunctions.sort_internal(input, comparator);
+            return result;        
+        }
+
+        /**
+         * create a transformer function
+         * @param {Object} expr - AST for operator
+         * @param {Object} input - Input data to evaluate against
+         * @param {Object} environment - Environment
+         * @returns {*} tranformer function
+         */
+        private static JToken evaluateTransformExpression(TransformNode expr, JToken input, EvaluationEnvironment environment)
+        {
+            // create a function to implement the transform definition
+            // var transformer = async function (obj) { // signature <(oa):o>
+            // ... 
+            // }
+            // return defineFunction(transformer, '<(oa):o>');
+            return new FunctionTokenTransformation(expr.pattern, expr.update, expr.delete, environment);
+        }
+
+        private static readonly Node s_chainAST = BuildChainAst();
+
+        private static Node BuildChainAst()
+        { 
+            Node chainAST = Parser.Parse("function($f, $g) { function($x){ $g($f($x)) } }");
+            return chainAST;
+        }
+
+        /**
+         * Apply the Object on the RHS using the sequence on the LHS as the first argument
+         * @param {Object} expr - JSONata expression
+         * @param {Object} input - Input data to evaluate against
+         * @param {Object} environment - Environment
+         * @returns {*} Evaluated input data
+         */
+        private static JToken evaluateApplyExpression(ApplyNode expr, JToken input, EvaluationEnvironment environment)
+        {
+            JToken lhs = JsonataQ.evaluate(expr.lhs, input, environment);
+
+            JToken result;
+            if (expr.rhs.type == SymbolType.function) 
+            {
+                // this is a function _invocation_; invoke it with lhs expression as the first argument
+                result = JsonataQ.evaluateFunction((FunctionalNode)expr.rhs, input, environment, lhs);
+            } 
+            else 
+            {
+                JToken func = JsonataQ.evaluate(expr.rhs, input, environment);
+                if (func is not FunctionToken function)
+                {
+                    throw new JsonataException(JsonataErrorCode.T2006, $"The right side of the function application operator ~> must be a function. Got {func.ToFlatString()} ({func.Type})", expr.position);
+                }
+
+                if (lhs is FunctionToken)
+                {
+                    // this is function chaining (func1 ~> func2)
+                    // λ($f, $g) { λ($x){ $g($f($x)) } }
+                    JToken chain = JsonataQ.evaluate(s_chainAST, JValue.CreateNull(), environment);
+                    if (chain is not FunctionToken chainFunction)
+                    {
+                        throw new Exception("Should not happen!");
+                    }
+                    List<JToken> args = new List<JToken>() { lhs, func };
+                    result = JsonataQ.apply(chainFunction, args, JValue.CreateNull(), environment);
+                } 
+                else 
+                {
+                    List<JToken> args = new List<JToken>() { lhs };
+                    result = JsonataQ.apply(function, args, JValue.CreateNull(), environment);
+                }
+            }
+            return result;
+        }
+
+        /**
+         * Evaluate Object against input data
+         * @param {Object} expr - JSONata expression
+         * @param {Object} input - Input data to evaluate against
+         * @param {Object} environment - Environment
+         * @returns {*} Evaluated input data
+         */
+        private static JToken evaluateFunction(FunctionalNode expr, JToken input, EvaluationEnvironment environment, JToken? applytoContext)
+        {
+            // create the procedure
+            // can't assume that expr.procedure is a lambda type directly
+            // could be an expression that evaluates to a Object (e.g. variable reference, parens expr etc.
+            // evaluate it generically first, then check that it is a function.  Throw error if not.
+            JToken proc = JsonataQ.evaluate(expr.procedure, input, environment);
+ 
+            if (proc.Type == JTokenType.Undefined 
+                && expr.procedure.type == SymbolType.path
+                && expr.procedure is PathRuntimeNode exprPath
+                && exprPath.steps[0] is NodeWithStrValue valueStep
+                && environment.Lookup(valueStep.value).Type != JTokenType.Undefined
+            ) 
+            {
+                // help the user out here if they simply forgot the leading $
+                throw new JsonataException(JsonataErrorCode.T1005, $"Attempted to invoke a non-function. Did you mean ${valueStep.value}?", expr.position);
+            }
+
+            List<JToken> evaluatedArgs = new();
+            if (applytoContext != null) 
+            {
+                evaluatedArgs.Add(applytoContext);
+            }
+            // eager evaluation - evaluate the arguments
+            foreach (Node argSymbol in expr.arguments!) 
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                JToken arg = JsonataQ.evaluate(argSymbol, input, environment);
+                if (arg is FunctionToken functionArg)
+                {
+                    // wrap this in a closure
+                    FunctionTokenClosure closure = new FunctionTokenClosure(functionArg, environment);
+                    evaluatedArgs.Add(closure);
+                } 
+                else 
+                {
+                    evaluatedArgs.Add(arg);
+                }
+            }
+
+            /*
+            object? procNameObj = expr.procedure.type == SymbolType.path ? ((PathNode)expr.procedure).steps[0].value : expr.procedure.value;
+            string? procName;
+            if (procNameObj is string procNameObjStr)
+            {
+                procName = procNameObjStr;
+            }
+            else if (procNameObj != null)
+            {
+                //This probably may only happen if proc is not FunctionToken, see below
+                procName = procNameObj.ToString();
+            }
+            else
+            {
+                procName = null;
+            }
+            */
+
+            // apply the procedure
+            if (proc is not FunctionToken procFunction)
+            {
+                throw new JsonataException(JsonataErrorCode.T1006, "Attempted to invoke a non-function", expr.position); //TODO: proc name
+            }
+            try
+            {
+                JToken result = JsonataQ.apply(procFunction, evaluatedArgs, input, environment);
+                return result;
+            }
+            catch (JsonataException jex)
+            {
+                throw new JsonataException(jex.Code, jex.RawMessage, jex.Position ?? expr.position, jex);
+            } 
+        }
+
+        /**
+         * Apply procedure or function
+         * @param {Object} proc - Procedure
+         * @param {Array} args - Arguments
+         * @param {Object} input - input
+         * @param {Object} environment - environment
+         * @returns {*} Result of procedure
+         */
+        internal static JToken apply(FunctionToken proc, List<JToken> args, JToken input, EvaluationEnvironment environment) 
+        {
+            JToken result = JsonataQ.applyInner(proc, args, input, environment);
+            int iteration = 0;
+            while (result is FunctionTokenLambda lambda && lambda.thunk)
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                ++iteration;
+                if (iteration > environment.MaxTailRecursionIteration)
+                {
+                    throw new JsonataException(JsonataErrorCode.U1001, "Expression evaluation limit: Check for infinite loop or tail recursion");
+                }
+                // trampoline loop - this gets invoked as a result of tail-call optimization
+                // the Object returned a tail-call thunk
+                // unpack it, evaluate its arguments, and apply the tail call
+                FunctionalNode body = (FunctionalNode)lambda.body;
+                JToken next = JsonataQ.evaluate(body.procedure, lambda.input, lambda.environment);
+                // TODO:???
+                // if (body.procedure.type == SymbolType.variable)
+                // {
+                //     //next.token = result.body.procedure.value;
+                // }
+                // //next.position = result.body.procedure.position;
+
+                List<JToken> evaluatedArgs = new ();
+                foreach (Node argSymbol in body.arguments) 
+                {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                    JToken arg = JsonataQ.evaluate(argSymbol, lambda.input, lambda.environment);
+                    evaluatedArgs.Add(arg);
+                }
+                if (next is not FunctionToken nextFunc)
+                {
+                    throw new Exception("Should not happen!");
+                }
+                result = JsonataQ.applyInner(nextFunc, evaluatedArgs, input, environment);
+            }
+            return result;
+        }
+
+        /**
+         * Apply procedure or function
+         * @param {Object} proc - Procedure
+         * @param {Array} args - Arguments
+         * @param {Object} input - input
+         * @param {Object} environment - environment
+         * @returns {*} Result of procedure
+         *
+         */
+        private static JToken applyInner(FunctionToken proc, List<JToken> args, JToken input, EvaluationEnvironment environment) 
+        {
+            List<JToken> validatedArgs;
+            if (proc.Signature != null)
+            {
+                validatedArgs = proc.Signature.Validate(args, input, proc.Name);
+            }
+            else
+            {
+                validatedArgs = args;
+            }
+
+            JToken result;
+            if (proc is FunctionTokenLambda procLambda) 
+            {
+                result = JsonataQ.applyProcedure(procLambda, validatedArgs);
+            }
+            else
+            {
+                JsThisArgument jsThis = new JsThisArgument(input: input, environment: environment);
+                result = proc.Apply(jsThis, args: validatedArgs);
+            }
+            return result;
+        }
+
+        /**
+        * Evaluate lambda against input data
+        * @param {Object} expr - JSONata expression
+        * @param {Object} input - Input data to evaluate against
+        * @param {Object} environment - Environment
+        * @returns {{lambda: boolean, input: *, environment: *, arguments: *, body: *}} Evaluated input data
+        */
+        private static JToken evaluateLambda(LambdaNode expr, JToken input, EvaluationEnvironment environment)
+        {
+            /*
+            // make a function (closure)
+            var procedure = {
+                _jsonata_lambda: true,
+                input: input,
+                environment: environment,
+                arguments: expr.arguments,
+                signature: expr.signature,
+                body: expr.body
+            };
+            if(expr.thunk === true) {
+                procedure.thunk = true;
+            }
+            procedure.apply = async function(self, args) {
+                return await apply(procedure, args, input, !!self ? self.environment : environment);
+            };
+            return procedure;
+            */
+            return new FunctionTokenLambda(expr, input, environment);
+        }
+
+        /**
+         * Evaluate partial application
+         * @param {Object} expr - JSONata expression
+         * @param {Object} input - Input data to evaluate against
+         * @param {Object} environment - Environment
+         * @returns {*} Evaluated input data
+         */
+        private static JToken evaluatePartialApplication(FunctionalNode expr, JToken input, EvaluationEnvironment environment)
+        {
+            // partially apply a function
+            // evaluate the arguments
+            List<JToken?> evaluatedArgsOrPlaceholders = new ();
+            foreach (Node arg in expr.arguments) 
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                if (arg.type == SymbolType._partial_arg) 
+                {
+                    evaluatedArgsOrPlaceholders.Add(null);
+                } 
+                else 
+                {
+                    evaluatedArgsOrPlaceholders.Add(JsonataQ.evaluate(arg, input, environment));
+                }
+            }
+            // lookup the procedure
+            JToken proc = JsonataQ.evaluate(expr.procedure, input, environment);
+            if (proc.Type == JTokenType.Undefined
+                && expr.procedure.type == SymbolType.path
+                && expr.procedure is PathRuntimeNode exprPath
+                && exprPath.steps[0] is NodeWithStrValue valueStep
+                && environment.Lookup(valueStep.value).Type != JTokenType.Undefined
+            )
+            {
+                // help the user out here if they simply forgot the leading $
+                throw new JsonataException(JsonataErrorCode.T1007, $"Attempted to partially apply a non-function. Did you mean ${valueStep.value}?", expr.position);
+            }
+
+            JToken result;
+            if (proc is FunctionTokenLambda procLambda)
+            {
+                result = JsonataQ.partialApplyProcedure(procLambda, evaluatedArgsOrPlaceholders);
+            }
+            else if (proc is FunctionTokenCsharp procCsharp)
+            {
+                result = JsonataQ.partialApplyNativeFunction(procCsharp, evaluatedArgsOrPlaceholders);
+            }
+            else if (proc is FunctionToken procFunc)
+            {
+                result = JsonataQ.partialApplyNativeFunction(procFunc, evaluatedArgsOrPlaceholders);
+            }
+            else
+            {
+                //procName = expr.procedure.type == SymbolType.path ? ((PathNode)expr.procedure).steps[0].value : expr.procedure.value
+                throw new JsonataException(JsonataErrorCode.T1008, "Attempted to partially apply a non-function", expr.position); //TODO: procName
+            }
+            return result;
+        }
+
+        /**
+         * Apply procedure
+         * @param {Object} proc - Procedure
+         * @param {Array} args - Arguments
+         * @returns {*} Result of procedure
+         **/
+        private static JToken applyProcedure(FunctionTokenLambda proc, List<JToken> args) 
+        {
+            EvaluationEnvironment env = EvaluationEnvironment.CreateNestedEnvironment(proc.environment);
+            for (int index = 0; index < proc.arguments.Count; ++index)
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                VariableNode param = proc.arguments[index];
+                JToken argValue = index < args.Count? args[index] : JsonataQ.UNDEFINED;
+                env.BindValue(param.value, argValue);
+            }
+            JToken result;
+            /* TODO?
+            if (proc.body.type == SymbolType.function)
+            {
+                // this is a lambda that wraps a native function - generated by partially evaluating a native
+                result = JsonataQ.applyNativeFunction(proc.body, env);
+            }
+            else
+            */
+            {
+                result = JsonataQ.evaluate(proc.body, proc.input, env);
+            }
+            return result;
+        }
+
+        /**
+         * Partially apply procedure
+         * @param {Object} proc - Procedure
+         * @param {Array} args - Arguments
+         * @returns {{lambda: boolean, input: *, environment: {bind, lookup}, arguments: Array, body: *}} Result of partially applied procedure
+         *
+         */
+        private static JToken partialApplyProcedure(FunctionTokenLambda proc, List<JToken?> argsOrPlaceholders) 
+        {
+            // create a closure, bind the supplied parameters and return a function that takes the remaining (?) parameters
+            EvaluationEnvironment env = EvaluationEnvironment.CreateNestedEnvironment(proc.environment);
+            List<VariableNode> unboundArgs = new();
+            for (int index = 0; index < proc.arguments.Count; ++ index)
+            {
+                Projecta.Execution.EvaluationBudget.CheckpointCurrent();
+                VariableNode param = proc.arguments[index];
+                JToken? arg = argsOrPlaceholders[index];
+                if (arg == null)
+                {
+                    unboundArgs.Add(param);
+                }
+                else
+                {
+                    env.BindValue(param.value, arg);
+                }
+            }
+
+            JToken procedure = new FunctionTokenLambda(input: proc.input, environment: env, arguments: unboundArgs, body: proc.body);
+            return procedure;
+        }
+        
+        /**
+         * Partially apply native function
+         * @param {Function} native - Native function
+         * @param {Array} args - Arguments
+         * @returns {{lambda: boolean, input: *, environment: {bind, lookup}, arguments: Array, body: *}} Result of partially applying native function
+         *
+         */
+        private static JToken partialApplyNativeFunction(FunctionToken native, List<JToken?> argsOrPlaceholders) 
+        {
+            /*
+            // create a lambda function that wraps and invokes the native function
+            // get the list of declared arguments from the native function
+            // this has to be picked out from the toString() value
+            var sigArgs = getNativeFunctionArguments(native);
+            sigArgs = sigArgs.map(function(sigArg) {
+                return '$' + sigArg.trim();
+            });
+            var body = 'function(' + sigArgs.join(', ') + '){ _ }';
+
+            var bodyAST = parser(body);
+            bodyAST.body = native;
+
+            var partial = partialApplyProcedure(bodyAST, args);
+            return partial;
+            */
+            return new FunctionTokenPartial(native, argsOrPlaceholders);
+        }
+    }
+}

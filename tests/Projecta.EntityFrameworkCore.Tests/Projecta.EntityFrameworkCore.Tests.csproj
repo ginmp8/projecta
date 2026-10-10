@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><OutputType>Exe</OutputType><IsPackable>false</IsPackable></PropertyGroup>
+ <ItemGroup><ProjectReference Include="../../src/Projecta.EntityFrameworkCore/Projecta.EntityFrameworkCore.csproj" /><PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" /><PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" /></ItemGroup>
+</Project>

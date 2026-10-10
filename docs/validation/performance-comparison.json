@@ -1,0 +1,79 @@
+{
+  "runtime": "10.0.10",
+  "framework": ".NET 10.0.10",
+  "note": "Same .NET 10 runtime; original engine source unchanged except target framework. Synthetic microbenchmark, not end-to-end workload.",
+  "records": [
+    {
+      "scenario": "upstream-object-reader",
+      "iterations": 10000,
+      "microseconds": 11.85875,
+      "allocatedBytes": 10768.0088
+    },
+    {
+      "scenario": "projecta-object-reader",
+      "iterations": 10000,
+      "microseconds": 24.79417,
+      "allocatedBytes": 10619.3632
+    },
+    {
+      "scenario": "upstream-pad-20000",
+      "iterations": 200,
+      "microseconds": 8762.58,
+      "allocatedBytes": 200320024.44
+    },
+    {
+      "scenario": "projecta-pad-20000",
+      "iterations": 200,
+      "microseconds": 46.903,
+      "allocatedBytes": 40024.44
+    },
+    {
+      "scenario": "upstream-object-reader",
+      "iterations": 10000,
+      "microseconds": 11.21865,
+      "allocatedBytes": 10768.0088
+    },
+    {
+      "scenario": "projecta-object-reader",
+      "iterations": 10000,
+      "microseconds": 4.8474,
+      "allocatedBytes": 10619.3632
+    },
+    {
+      "scenario": "upstream-pad-20000",
+      "iterations": 200,
+      "microseconds": 8602.4485,
+      "allocatedBytes": 200320024.44
+    },
+    {
+      "scenario": "projecta-pad-20000",
+      "iterations": 200,
+      "microseconds": 21.261,
+      "allocatedBytes": 40024.44
+    },
+    {
+      "scenario": "upstream-object-reader",
+      "iterations": 10000,
+      "microseconds": 10.96543,
+      "allocatedBytes": 10768.0088
+    },
+    {
+      "scenario": "projecta-object-reader",
+      "iterations": 10000,
+      "microseconds": 4.4188,
+      "allocatedBytes": 10619.3632
+    },
+    {
+      "scenario": "upstream-pad-20000",
+      "iterations": 200,
+      "microseconds": 8577.329,
+      "allocatedBytes": 200320024.44
+    },
+    {
+      "scenario": "projecta-pad-20000",
+      "iterations": 200,
+      "microseconds": 23.991999999999997,
+      "allocatedBytes": 40024.44
+    }
+  ]
+}

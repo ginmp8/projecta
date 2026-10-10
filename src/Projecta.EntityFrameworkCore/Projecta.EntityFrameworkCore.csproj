@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><IsPackable>true</IsPackable><Description>Opt-in EF Core 10 snapshots and explicit tracked scalar updates for Projecta.</Description></PropertyGroup>
+ <ItemGroup><ProjectReference Include="../Projecta/Projecta.csproj" /><PackageReference Include="Microsoft.EntityFrameworkCore" /></ItemGroup>
+</Project>

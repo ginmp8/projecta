@@ -1,0 +1,41 @@
+using System;
+
+
+namespace Projecta.Eval
+{
+    //provides support for cases when
+    // "undefined inputs always return undefined"
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public sealed class PropagateUndefinedAttribute: Attribute
+    {
+    }
+
+    //provides support for cases when
+    // "undefined inputs always return undefined"
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public sealed class OptionalArgumentAttribute : Attribute
+    {
+        public readonly object? DefaultValue;
+
+        public OptionalArgumentAttribute(object? defaultValue)
+        {
+            this.DefaultValue = defaultValue;
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public sealed class VariableNumberArgumentAsArrayAttribute : Attribute
+    {
+    }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public sealed class FunctionSignatureAttribute : Attribute
+    {
+        internal readonly string Signature;
+
+        public FunctionSignatureAttribute(string signature)
+        {
+            this.Signature = signature;
+        }
+    }
+}

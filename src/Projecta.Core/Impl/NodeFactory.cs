@@ -1,0 +1,736 @@
+using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using Projecta.Eval;
+
+namespace Projecta.Impl
+{
+    internal abstract class NodeFactoryBase
+    {
+        internal string id;
+        internal int bp;
+
+        public NodeFactoryBase(string id)
+            : this(id, 0)
+        {
+        }
+
+        public NodeFactoryBase(string id, int bp)
+        {
+            this.id = id;
+            this.bp = bp;
+        }
+
+        virtual internal Node nud(Parser parser, Token token)
+        {
+            throw new JsonataException(JsonataErrorCode.S0211, $"The symbol '{token.value}' cannot be used as a unary operator", token.position);
+        }
+
+        virtual internal Node led(Node left, Parser parser, Token token)
+        {
+            throw new Exception("led not implemented");
+        }
+    }
+
+    internal sealed class DummyNodeFactory : NodeFactoryBase
+    {
+        public DummyNodeFactory(string id) : base(id)
+        {
+        }
+    }
+
+    // match infix operators
+    // <expression> <operator> <expression>
+    // left associative
+    internal class InfixFactory : NodeFactoryBase
+    {
+        internal InfixFactory(string id)
+            : base(id, Tokenizer.OPERATORS[id])
+        {
+
+        }
+
+        internal override Node led(Node left, Parser parser, Token token)
+        {
+            Node rhs = parser.expression(bp);
+            BinaryOperatorType value = (string)token.value! switch {
+                "and" => BinaryOperatorType.and,
+                "or" => BinaryOperatorType.or,
+                "+" => BinaryOperatorType.add,
+                "-" => BinaryOperatorType.sub,
+                "*" => BinaryOperatorType.mul,
+                "/" => BinaryOperatorType.div,
+                "%" => BinaryOperatorType.mod,
+                "=" => BinaryOperatorType.eq,
+                "!=" => BinaryOperatorType.ne,
+                "<" => BinaryOperatorType.lt,
+                "<=" => BinaryOperatorType.le,
+                ">" => BinaryOperatorType.gt,
+                ">=" => BinaryOperatorType.ge,
+                "&" => BinaryOperatorType.concat,
+                ".." => BinaryOperatorType.range,
+                "in" => BinaryOperatorType.@in,
+                _ => throw new Exception("Unexpected binary operator: " + (string)token.value!)
+            };
+            Node result = new BinaryNode(value, left, rhs, token.position);
+            return result;
+        }
+    }
+
+    internal class InfixApplyFactory : InfixFactory
+    {
+        internal InfixApplyFactory(string id)
+            : base(id)
+        {
+
+        }
+
+        internal override Node led(Node left, Parser parser, Token token)
+        {
+            Node rhs = parser.expression(bp);
+            Node result = new ApplyNode(left, rhs, token.position);
+            return result;
+        }
+    }
+
+    internal class InfixMapFactory : InfixFactory
+    {
+        internal InfixMapFactory(string id)
+            : base(id)
+        {
+
+        }
+
+        internal override Node led(Node left, Parser parser, Token token)
+        {
+            Node rhs = parser.expression(bp);
+            Node result = new PathConstructionNode(left, rhs, token.position);
+            return result;
+        }
+    }
+
+    internal sealed class InfixWithOperatorPrefixFactory : InfixFactory
+    {
+        private readonly SpecialOperatorType m_operatorType;
+
+        public InfixWithOperatorPrefixFactory(string id, SpecialOperatorType operatorType)
+            : base(id)
+        {
+            this.m_operatorType = operatorType;
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            Node result = new SpecialOperatorConstructionNode(this.m_operatorType, token.position);
+            return result;
+        }
+    }
+
+    internal class PrefixTransformerFactory : NodeFactoryBase
+    {
+        internal PrefixTransformerFactory(string id)
+            : base(id)
+        {
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            Node pattern = parser.expression(0);
+            parser.advance("|");
+            Node update = parser.expression(0);
+            Node? delete;
+            if (parser.currentNodeFactory.id == ",")
+            {
+                parser.advance(",");
+                delete = parser.expression(0);
+            }
+            else
+            {
+                delete = null;
+            }
+            parser.advance("|");
+            TransformNode result = new TransformNode(pattern, update, delete, token.position);
+            return result;
+        }
+    }
+
+    internal class PrefixDescendantWindcardFactory : NodeFactoryBase
+    {
+        internal PrefixDescendantWindcardFactory(string id) 
+            : base(id)
+        {
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            Node result = new DescendantNode(token.position);
+            return result;
+        }
+    }
+
+    internal sealed class InfixAndPrefixMinusFactory : InfixFactory
+    {
+        internal InfixAndPrefixMinusFactory(string id)
+            : base(id)
+        {
+
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            Node expression = parser.expression(70);
+            Node result = new UnaryMinusNode(expression, token.position);
+            return result;
+        }
+    }
+
+    internal class InfixOrderByFactory : InfixFactory
+    {
+        internal InfixOrderByFactory(string id)
+            : base(id)
+        {
+        }
+
+        internal override Node led(Node left, Parser parser, Token token)
+        {
+            parser.advance("(");
+            List<SortTermNode> terms = new();
+            while (true)
+            {
+                bool descending = false;
+
+                if (parser.currentNodeFactory.id == "<")
+                {
+                    // ascending sort
+                    parser.advance("<");
+                }
+                else if (parser.currentNodeFactory.id == ">")
+                {
+                    // descending sort
+                    descending = true;
+                    parser.advance(">");
+                }
+                else
+                {
+                    //unspecified - default to ascending
+                }
+                Node expression = parser.expression(0);
+                SortTermNode term = new SortTermNode(expression, descending, token.position);
+                terms.Add(term);
+                if (parser.currentNodeFactory.id != ",")
+                {
+                    break;
+                }
+                parser.advance(",");
+            }
+            parser.advance(")");
+            OrderbyConstructionNode result = new OrderbyConstructionNode(lhs: left, rhsTerms: terms, position: token.position);
+            return result;
+        }
+    }
+
+    internal class InfixBlockFactory : InfixFactory
+    {
+        internal InfixBlockFactory(string id)
+            : base(id)
+        {
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            List<Tuple<Node, Node>> lhsObject = this.parseObject(parser);
+            Node result = new GroupNode(lhsObject, token.position);
+            return result;
+        }
+
+        internal override Node led(Node left, Parser parser, Token token)
+        {
+            List<Tuple<Node, Node>> rhsObject = this.parseObject(parser);
+            Node result = new GroupByConstructionNode(left, rhsObject, token.position);
+            return result;
+        }
+
+        private List<Tuple<Node, Node>> parseObject(Parser parser)
+        {
+            List<Tuple<Node, Node>> a = new();
+            if (parser.currentNodeFactory.id != "}")
+            {
+                while (true)
+                {
+                    Node n = parser.expression(0);
+                    parser.advance(":");
+                    Node v = parser.expression(0);
+                    Tuple<Node, Node> pair = Tuple.Create(n, v);
+                    a.Add(pair); // holds an array of name/value expression pairs
+                    if (parser.currentNodeFactory.id != ",")
+                    {
+                        break;
+                    }
+                    parser.advance(",");
+                }
+            }
+            parser.advance("}", true);
+            return a;
+        }
+    }
+
+    internal class InfixBindContextVarFactory : InfixFactory
+    {
+        internal InfixBindContextVarFactory(string id)
+            : base(id)
+        {
+        }
+
+        internal override Node led(Node left, Parser parser, Token token)
+        {
+            Node rhs = parser.expression(Tokenizer.OPERATORS["@"]);
+            if (rhs.type != SymbolType.variable)
+            {
+                throw new JsonataException(JsonataErrorCode.S0214, $"The right side of @ must be a variable name (start with $)", rhs.position);
+            }
+            Node result = new BindContextVarConstructionNode(left, (VariableNode)rhs, token.position);
+            return result;
+        }
+    }
+
+    internal class InfixBindPositionalVarFactory : InfixFactory
+    {
+        internal InfixBindPositionalVarFactory(string id)
+            : base(id)
+        {
+        }
+
+        internal override Node led(Node left, Parser parser, Token token)
+        {
+            Node rhs = parser.expression(Tokenizer.OPERATORS["#"]);
+            if (rhs.type != SymbolType.variable)
+            {
+                throw new JsonataException(JsonataErrorCode.S0214, $"The right side of # must be a variable name (start with $)", rhs.position);
+            }
+            Node result = new BindPositionalVarConstructionNode(left, (VariableNode)rhs, token.position);
+            return result;
+        }
+    }
+
+    internal class InfixInvocationFactory : InfixFactory
+    {
+        internal InfixInvocationFactory(string id)
+            : base(id)
+        {
+        }
+
+        internal override Node led(Node left, Parser parser, Token token)
+        {
+            //SymbolType type = SymbolType.function;
+            bool isPartial = false;
+            List<Node> arguments = new();
+            if (parser.currentNodeFactory.id != ")")
+            {
+                while (true)
+                {
+                    if (parser.currentToken.type == SymbolType.@operator && parser.currentNodeFactory.id == "?")
+                    {
+                        // partial function application
+                        //type = SymbolType.partial;
+                        isPartial = true;
+                        arguments.Add(new ArgumentPlaceholderNode(parser.currentToken.position));
+                        parser.advance("?");
+                    }
+                    else
+                    {
+                        arguments.Add(parser.expression(0));
+                    }
+                    if (parser.currentNodeFactory.id != ",")
+                    {
+                        break;
+                    }
+                    parser.advance(",");
+                }
+            }
+            parser.advance(")", true);
+            // if the name of the function is 'function' or λ, then this is function definition (lambda function)
+            if (left.type == SymbolType.name
+                && left is NameNode leftNameNode 
+                && (leftNameNode.value == "function" || leftNameNode.value == "\u03BB")
+            )
+            {
+                // all of the args must be VARIABLE tokens
+                List<VariableNode> argVariables = new(arguments.Count);
+                foreach (Node arg in arguments)
+                {
+                    if (arg.type != SymbolType.variable)
+                    {
+                        throw new JsonataException(JsonataErrorCode.S0208, $"Parameter of function definition must be a variable name (start with $)", arg.position);
+                    }
+                    argVariables.Add((VariableNode)arg);
+                }
+                // type = SymbolType.lambda;
+                Signature? signature = null;
+                // is the next token a '<' - if so, parse the function signature
+                if (parser.currentNodeFactory.id == "<")
+                {
+                    int depth = 1;
+                    String sig = "<";
+                    while (depth > 0 && parser.currentNodeFactory.id != "{" && parser.currentNodeFactory != Parser.s_terminalFactoryEnd)
+                    {
+                        parser.advance();
+                        NodeFactoryBase tok = parser.currentNodeFactory;
+                        if (tok.id == ">")
+                        {
+                            --depth;
+                        }
+                        else if (tok.id == "<")
+                        {
+                            ++depth;
+                        }
+                        sig += parser.currentToken.value;
+                    }
+                    parser.advance(">");
+                    signature = new Signature(sig);
+                }
+                // parse the function body
+                parser.advance("{");
+                Node body = parser.expression(0);
+                parser.advance("}");
+
+                Node result = new LambdaNode(arguments: argVariables, body: body, signature: signature, position: token.position);
+                return result;
+            }
+            else
+            {
+                // left is is what we are trying to invoke
+                Node result = new FunctionalNode(procedure: left, arguments: arguments, partial: isPartial, position: token.position);
+                return result;
+            }
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            List<Node> expressions = new();
+            while (parser.currentNodeFactory.id != ")")
+            {
+                expressions.Add(parser.expression(0));
+                if (parser.currentNodeFactory.id != ";")
+                {
+                    break;
+                }
+                parser.advance(";");
+            }
+            parser.advance(")", true);
+            BlockNode result = new BlockNode(expressions, token.position);
+            return result;
+        }
+    }
+
+    internal class InfixArrayFactory : InfixFactory
+    {
+        internal InfixArrayFactory(string id)
+            : base(id)
+        {
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            List<Node> a = new();
+            if (parser.currentNodeFactory.id != "]")
+            {
+                while (true)
+                {
+                    Node item = parser.expression(0);
+                    if (parser.currentNodeFactory.id == "..")
+                    {
+                        // range operator
+                        Node lhs = item;
+                        int pos = parser.currentToken.position;
+                        parser.advance("..");
+                        Node rhs = parser.expression(0);
+                        Node range = new BinaryNode(BinaryOperatorType.range, lhs, rhs, pos);
+                        item = range;
+                    }
+                    a.Add(item);
+                    if (parser.currentNodeFactory.id != ",")
+                    {
+                        break;
+                    }
+                    parser.advance(",");
+                }
+            }
+            parser.advance("]", true);
+            Node result = new ArrayNode(a, token.position);
+            return result;
+        }
+
+        internal override Node led(Node left, Parser parser, Token token)
+        {
+            if (parser.currentNodeFactory.id == "]")
+            {
+                // empty predicate means maintain singleton arrays in the output
+                Node? step = left;
+                while (step is FilterConstructionNode binaryStep)
+                {
+                    step = binaryStep.lhs;
+                }
+                if (step == null)
+                {
+                    throw new Exception("TODO??");
+                }
+                step.keepArray = true;
+                parser.advance("]");
+                return left;
+            }
+            else
+            {
+                Node rhs = parser.expression(Tokenizer.OPERATORS["]"]);
+                Node symbol = new FilterConstructionNode(left, rhs, token.position);
+                parser.advance("]", true);
+                return symbol;
+            }
+        }
+    }
+
+    internal class InfixCoalescingFactory : InfixFactory
+    {
+        internal InfixCoalescingFactory(string id)
+            : base(id)
+        {
+        }
+
+        internal override Node led(Node left, Parser parser, Token token)
+        {
+            Node procedure = new VariableNode(nameof(BuiltinFunctions.exists));     //TODO: probably should be 'name'??
+            FunctionalNode condition = new FunctionalNode(procedure: procedure, arguments: new() { left });
+            Node @else = parser.expression(0);
+            ConditionNode result = new ConditionNode(condition: condition, then: left, @else: @else, position: token.position);
+            return result;
+        }
+    }
+
+    internal class InfixTernaryFactory : InfixFactory
+    {
+        internal InfixTernaryFactory(string id)
+            : base(id)
+        {
+        }
+
+        internal override Node led(Node left, Parser parser, Token token)
+        {
+            Node then = parser.expression(0);
+            Node? @else;
+            if (parser.currentNodeFactory.id == ":")
+            {
+                // else condition
+                parser.advance(":");
+                @else = parser.expression(0);
+            }
+            else
+            {
+                @else = null;
+            }
+            ConditionNode result = new ConditionNode(condition: left, then: then, @else: @else, position: token.position);
+            return result;
+        }
+    }
+
+    internal class InfixElvisFactory : InfixFactory
+    {
+        internal InfixElvisFactory(string id)
+            : base(id)
+        {
+        }
+
+        internal override Node led(Node left, Parser parser, Token token)
+        {
+            Node @else = parser.expression(0);
+            ConditionNode result = new ConditionNode(condition: left, then: left, @else: @else, position: token.position);
+            return result;
+        }
+    }
+
+    internal class InfixBindAssignVarFactory : InfixFactory
+    {
+        internal InfixBindAssignVarFactory(string id)
+            : base(id)
+        {
+        }
+
+        internal override Node led(Node left, Parser parser, Token token)
+        {
+            if (left.type != SymbolType.variable)
+            {
+                throw new JsonataException(JsonataErrorCode.S0212, "The left side of := must be a variable name (start with $)", left.position); //TODO: value
+            }
+            Node rhs = parser.expression(Tokenizer.OPERATORS[":="] - 1); // subtract 1 from bindingPower for right associative operators
+            Node result = new AssignVarConstructionNode((VariableNode)left, rhs, token.position);
+            return result;
+        }
+    }
+
+    internal sealed class InfixWildcardFactory : InfixFactory
+    {
+        public InfixWildcardFactory(string id)
+            : base(id)
+        {
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            return new WildcardNode(token.position);
+        }
+    }
+
+    internal sealed class InfixParentFactory : InfixFactory
+    {
+        public InfixParentFactory(string id)
+            : base(id)
+        {
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            return new ParentConstructionNode(token.position);
+        }
+    }
+
+    internal sealed class TerminalFactoryNumberInt : NodeFactoryBase
+    {
+        public TerminalFactoryNumberInt() : base($"(int)", 0)
+        {
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            if (token.type != SymbolType._number_int)
+            {
+                throw new Exception($"Should not happen: got {token.type}, expected {SymbolType._number_int}");
+            }
+            return new NumberIntNode((long)token.value!, token.position);
+        }
+    }
+
+    internal sealed class TerminalFactoryNumberDouble : NodeFactoryBase
+    {
+        public TerminalFactoryNumberDouble() : base($"(double)", 0)
+        {
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            if (token.type != SymbolType._number_double)
+            {
+                throw new Exception($"Should not happen: got {token.type}, expected {SymbolType._number_double}");
+            }
+            return new NumberDoubleNode((double)token.value!, token.position);
+        }
+    }
+
+    internal sealed class TerminalFactoryString : NodeFactoryBase
+    {
+        public TerminalFactoryString() : base($"(string)", 0)
+        {
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            if (token.type != SymbolType.@string)
+            {
+                throw new Exception($"Should not happen: got {token.type}, expected {SymbolType.@string}");
+            }
+            return new StringNode((string)token.value!, token.position);
+        }
+    }
+
+    internal sealed class TerminalFactoryValueBool : NodeFactoryBase
+    {
+        public TerminalFactoryValueBool() : base($"(bool)", 0)
+        {
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            if (token.type != SymbolType._value_bool)
+            {
+                throw new Exception($"Should not happen: got {token.type}, expected {SymbolType._value_bool}");
+            }
+            return new BoolNode((bool)token.value!, token.position);
+        }
+    }
+
+    internal sealed class TerminalFactoryValueNull : NodeFactoryBase
+    {
+        public TerminalFactoryValueNull() : base($"(null)", 0)
+        {
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            if (token.type != SymbolType._value_null)
+            {
+                throw new Exception($"Should not happen: got {token.type}, expected {SymbolType._value_null}");
+            }
+            return new NullNode(token.position);
+        }
+    }
+
+    internal sealed class TerminalFactoryVariable : NodeFactoryBase
+    {
+        public TerminalFactoryVariable() : base($"(var)", 0)
+        {
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            if (token.type != SymbolType.variable)
+            {
+                throw new Exception($"Should not happen: got {token.type}, expected {SymbolType.variable}");
+            }
+            return new VariableNode((string)token.value!, token.position);
+        }
+    }
+
+    internal sealed class TerminalFactoryName : NodeFactoryBase
+    {
+        public TerminalFactoryName() : base($"(name)", 0)
+        {
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            if (token.type != SymbolType.name)
+            {
+                throw new Exception($"Should not happen: got {token.type}, expected {SymbolType.name}");
+            }
+            return new NameNode((string)token.value!, token.position);
+        }
+    }
+
+    internal sealed class TerminalFactoryRegex : NodeFactoryBase
+    {
+        public TerminalFactoryRegex() : base($"(regex)", 0)
+        {
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            if (token.type != SymbolType.regex)
+            {
+                throw new Exception($"Should not happen: got {token.type}, expected {SymbolType.regex}");
+            }
+            return new RegexNode((Regex)token.value!, token.position);
+        }
+    }
+    internal sealed class TerminalFactoryEnd : NodeFactoryBase
+    {
+        public TerminalFactoryEnd() : base($"(end)", 0)
+        {
+        }
+
+        internal override Node nud(Parser parser, Token token)
+        {
+            if (token.type != SymbolType._end)
+            {
+                throw new Exception($"Should not happen: got {token.type}, expected {SymbolType._end}");
+            }
+            return new EndNode(token.position);
+        }
+    }
+}

@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "project_count": 14,
+  "target_framework": "net10.0",
+  "central_package_management": true,
+  "project_references": "valid",
+  "legacy_jsonata_nuget_dependency": false,
+  "production_namespace_scan": "passed",
+  "dotnet_sdk": "10.0.302"
+}

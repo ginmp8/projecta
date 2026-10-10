@@ -1,0 +1,12 @@
+{
+  "id": "customer-v1",
+  "version": 1,
+  "targetType": "customer-view",
+  "fields": {
+    "Id": "$string(id)",
+    "Name": "fullName",
+    "IsActive": "status = 'ACTIVE'",
+    "City": "address.city",
+    "Roles": "roles"
+  }
+}

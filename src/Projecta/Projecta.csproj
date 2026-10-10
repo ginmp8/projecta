@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><IsPackable>true</IsPackable><Description>Declarative object projection with an embedded, source-owned JSONata engine.</Description></PropertyGroup>
+ <ItemGroup><ProjectReference Include="../Projecta.Core/Projecta.Core.csproj" /><ProjectReference Include="../Projecta.SystemTextJson/Projecta.SystemTextJson.csproj" /></ItemGroup>
+</Project>
