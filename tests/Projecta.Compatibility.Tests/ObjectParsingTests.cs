@@ -6,7 +6,7 @@ using Projecta.Json;
 using NUnit.Framework;
 using SharedTestData = global::Projecta.TestData.TestData;
 
-namespace Projecta.Tests
+namespace Projecta.Compatibility.Tests
 {
     public sealed class ObjectParsingTests
     {

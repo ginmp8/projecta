@@ -22,5 +22,5 @@
   <Project Path="tests/Projecta.SystemTextJson.Tests/Projecta.SystemTextJson.Tests.csproj" />
   <Project Path="tests/Projecta.TestData/Projecta.TestData.csproj" />
   <Project Path="tests/Projecta.Tests/Projecta.Tests.csproj" />
-  <Project Path="tests/Projecta.Upstream.Tests/Projecta.Upstream.Tests.csproj" />
+  <Project Path="tests/Projecta.Compatibility.Tests/Projecta.Compatibility.Tests.csproj" />
 </Solution>

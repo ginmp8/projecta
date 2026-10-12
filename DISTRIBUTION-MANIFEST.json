@@ -2,10 +2,12 @@
   "schema_version": 1,
   "release": "Projecta-0.2.0",
   "tfm": "net10.0",
-  "package_count": 11,
-  "source_entries": 242,
-  "tree_sha256": "14b19e034585a803549349e24e5a12976739bb6f533cd9ab2224d841121b9f0d",
-  "build_verification": "artifacts/validation/release-validation.json",
+  "package_count": 0,
+  "packable_project_count": 11,
+  "source_entries": 220,
+  "tree_sha256": "966183a6889e202ea2e5a3e4a2ebde79c953727bed7bca92495bdc7d29125e2a",
+  "build_verification": null,
+  "build_verification_status": "not-attested-by-source-manifest",
   "files": [
     {
       "path": ".editorconfig",
@@ -19,18 +21,18 @@
     },
     {
       "path": ".gitignore",
-      "bytes": 152,
-      "sha256": "c81689db45d4e63556b103054a46292f429198311b9be32937e6bed85500aa24"
+      "bytes": 95,
+      "sha256": "09d390b7ec9491297bd59c63e4aca0dc32f647855d9dc013d30dba328638fc41"
     },
     {
       "path": "CHANGELOG.md",
-      "bytes": 2703,
-      "sha256": "c55aa83db93b3a90d2d957be8e8b464c26a5cf6fcbff5f22d240fdd378a86b1d"
+      "bytes": 4893,
+      "sha256": "87301171eb985cf3317020cdc8bf1d529e6a449f18a4744f6733c2c825658619"
     },
     {
       "path": "Directory.Build.props",
-      "bytes": 871,
-      "sha256": "dd7d99cfa499e93706009f5366848462c2c0c726d969af2af9da154961809173"
+      "bytes": 831,
+      "sha256": "60393342f1c2a7dbf2a2a108e86c73f9348e9ec76469b63277f6a298ae05b3ac"
     },
     {
       "path": "Directory.Packages.props",
@@ -39,8 +41,8 @@
     },
     {
       "path": "LICENSE",
-      "bytes": 1094,
-      "sha256": "aa2dc545a6aa9c8553e6372435c7251c150c762bba8e994774c08b978ae3a16b"
+      "bytes": 1062,
+      "sha256": "17f9d2a759259add757ccdb4995bd37e904cde46e4c9d14b19f7d32398dac7a4"
     },
     {
       "path": "Projecta.Core.slnx",
@@ -49,138 +51,23 @@
     },
     {
       "path": "Projecta.slnx",
-      "bytes": 1914,
-      "sha256": "bffa952f5b8d494694ed491952823af751ae8730a80eee90f3430f197bb3d5b7"
+      "bytes": 1924,
+      "sha256": "99091478fa803c412d6fc4313a3b37f8beac261417ae908de484cb3123d6410d"
     },
     {
       "path": "README.md",
-      "bytes": 10520,
-      "sha256": "477b6b3b2d102573a88a30b350752e094772a8c5c2b2c451e7b243188ed16ca3"
+      "bytes": 10753,
+      "sha256": "45e02fcf4ef47fe5d8d6165ba2541c341205368aebd5d676ec04988df8360ada"
     },
     {
       "path": "RELEASE_NOTES.md",
-      "bytes": 2013,
-      "sha256": "cc0c52d8f5df482a0f9c36503f8c4fa2548c703ab7a611b3104a3877de04bf40"
+      "bytes": 2986,
+      "sha256": "a72f144946a8c3b749808f52c909c1b6f8c4712c26365205f52f3c32def5031c"
     },
     {
       "path": "THIRD-PARTY-NOTICES.md",
-      "bytes": 1346,
-      "sha256": "e7842c31cced4c52741f7a3529bc1cc41e6d431a1b9db8bd4ac6e508565542ef"
-    },
-    {
-      "path": "artifacts/packages/Projecta.0.2.0.nupkg",
-      "bytes": 46737,
-      "sha256": "0c734d89a69b97992eb8a79663977e3412e439d7aa44f05c236da85f1a3ef463"
-    },
-    {
-      "path": "artifacts/packages/Projecta.Contracts.0.2.0.nupkg",
-      "bytes": 21071,
-      "sha256": "5274c24c15946bda7c89e77c8d6d3f9ef42406e9568cff5dca0e9963ecaeaae2"
-    },
-    {
-      "path": "artifacts/packages/Projecta.Core.0.2.0.nupkg",
-      "bytes": 91069,
-      "sha256": "6a4d81f5eb192d38bc389d7e0f37e97f311586797b89ba0142bca97403e62230"
-    },
-    {
-      "path": "artifacts/packages/Projecta.Documents.0.2.0.nupkg",
-      "bytes": 20343,
-      "sha256": "c8f965bfdcf738c4ecc63b809dc4f1c2bf41c36b32bb81822c92131a01273c38"
-    },
-    {
-      "path": "artifacts/packages/Projecta.EntityFrameworkCore.0.2.0.nupkg",
-      "bytes": 15743,
-      "sha256": "eb10d7bbe50902884a855ba4d70b7f72c4cc9aef3971b747c8fde58f278aad9c"
-    },
-    {
-      "path": "artifacts/packages/Projecta.NewtonsoftJson.0.2.0.nupkg",
-      "bytes": 13446,
-      "sha256": "b23410c36f2d65fbe691741e5bc5d7a41e1485be99a71ab7e9f4f509d8ca2295"
-    },
-    {
-      "path": "artifacts/packages/Projecta.Queryable.0.2.0.nupkg",
-      "bytes": 17017,
-      "sha256": "fec035c186b95a0af37bcc751344d5968b609ac82cd2e212984259f2250080f2"
-    },
-    {
-      "path": "artifacts/packages/Projecta.SourceGeneration.0.2.0.nupkg",
-      "bytes": 103195,
-      "sha256": "7ee91d8d532af2b1e036ae18e672c16dc38f44c553f4880bfb7583f79dd8b3ea"
-    },
-    {
-      "path": "artifacts/packages/Projecta.Streaming.0.2.0.nupkg",
-      "bytes": 21135,
-      "sha256": "d2b8c90667e4995d0bf74219aafc1ba1ff0a9df4cde8bff7716a557f29279398"
-    },
-    {
-      "path": "artifacts/packages/Projecta.SystemTextJson.0.2.0.nupkg",
-      "bytes": 14263,
-      "sha256": "80d647a79b730a281545e4bb23e75af7b9b92ff4ee3b8fa1f47623f9bbc470de"
-    },
-    {
-      "path": "artifacts/packages/Projecta.Tooling.0.2.0.nupkg",
-      "bytes": 299981,
-      "sha256": "a4df9b048309b03a1a2dab32f19aae1775b490cd25d551d05aac5462426033dc"
-    },
-    {
-      "path": "artifacts/validation/Projecta.NewtonsoftJson.Tests.trx",
-      "bytes": 43286,
-      "sha256": "1d68d54586ec7248a89e22a05e06bd9e0fe780d2407e2744c98c7725ecea14fb"
-    },
-    {
-      "path": "artifacts/validation/Projecta.SystemTextJson.Tests.trx",
-      "bytes": 45704,
-      "sha256": "6e07e6ebb73ec6fd5ee77750a41aa8059d52cc178ba52b17401793bc28f6ae90"
-    },
-    {
-      "path": "artifacts/validation/Projecta.Upstream.Tests.trx",
-      "bytes": 122828,
-      "sha256": "057e5d7f93467c2e01970f3c1b154d34c47980bdd203b36ee0ea45778da17c7b"
-    },
-    {
-      "path": "artifacts/validation/build-and-tests.log",
-      "bytes": 22989,
-      "sha256": "914ba61687715db7e34552a6429edf72e22a78695931170a58a20b38a7242ab5"
-    },
-    {
-      "path": "artifacts/validation/core-tests.json",
-      "bytes": 8801,
-      "sha256": "9dcf2400f8ba7664e543b5a33da5f5b92c150e8fc95cafadb39ec8446f30e769"
-    },
-    {
-      "path": "artifacts/validation/evolution-tests.json",
-      "bytes": 25307,
-      "sha256": "c13d8373ba48f08cc8b05a95a012d5e145d30b03924c985a1ca118db731ca7c9"
-    },
-    {
-      "path": "artifacts/validation/pack-final.log",
-      "bytes": 1658,
-      "sha256": "40258fc2b4c348dc58c23519b50806c947d803d028c98edc7778b7ecdd76c48d"
-    },
-    {
-      "path": "artifacts/validation/package-consumer.log",
-      "bytes": 49,
-      "sha256": "5375cc9599a7421260a344fa1ae6b03c750d417e6f2a9281aca9e9a8f31e3b50"
-    },
-    {
-      "path": "artifacts/validation/packages.json",
-      "bytes": 2027,
-      "sha256": "181d0e0106574902499847e04ad0bc0598e30582ea8be410400ff999a8b277fd"
-    },
-    {
-      "path": "artifacts/validation/release-validation.json",
-      "bytes": 1408,
-      "sha256": "32d28d00f300b2e53f1175d42d3f433c38ae155826ead29a05649ed69c98f34b"
-    },
-    {
-      "path": "artifacts/validation/semantics.json",
-      "bytes": 58892,
-      "sha256": "832d1abb2208f58dc8ad3cb21f2a7c2d780746fc7c7778d5002d38580f34bad0"
-    },
-    {
-      "path": "artifacts/validation/tool-install.log",
-      "bytes": 520,
-      "sha256": "6467a7c3a53ae992e737454fd11e8f3a9a84dad6a0936c47a1b56e1225894f9e"
+      "bytes": 1398,
+      "sha256": "9f76ff5ae57afbfe905bfa8e9db3457ee43e9fd449ce68b8887df34c0fc11400"
     },
     {
       "path": "benchmarks/Projecta.Benchmarks/Program.cs",
@@ -194,8 +81,8 @@
     },
     {
       "path": "docs/AUTHORING.md",
-      "bytes": 6200,
-      "sha256": "2b3db3e2f77d0df8892053755c6f9726f27bb19dcf2d44d9296a77371a6cb246"
+      "bytes": 6192,
+      "sha256": "61650057031dea5ebe07144e73552d5ef1215f91aeb2bab83535f3bcd263cbc6"
     },
     {
       "path": "docs/CONTRACTS.md",
@@ -214,18 +101,18 @@
     },
     {
       "path": "docs/FEATURES.md",
-      "bytes": 5339,
-      "sha256": "ecf3d8aa951278f27e2ffaa1be14cf3e83ca1e0180fd40be50abb9110f92ca7f"
+      "bytes": 5616,
+      "sha256": "fd8c0079c3c62da4295a6596754ae960700913dd1bb5698ffda3dd8593dd135a"
     },
     {
       "path": "docs/MIGRATION.md",
-      "bytes": 3899,
-      "sha256": "237c54903f42d504e1ab5d9ee39e5a355d72ac687d853163c6bc1cef3766dd95"
+      "bytes": 4465,
+      "sha256": "7e55e39afe5250146b718abfb6cf53909f6529f70933dae2e9d96e90b7d5a5fd"
     },
     {
       "path": "docs/PERFORMANCE.md",
-      "bytes": 2168,
-      "sha256": "92008062d6b5c09355c11337880cb5c73a6b60dd96c57a039c9a704cdbc46957"
+      "bytes": 1727,
+      "sha256": "b493b2f06486e82418e8be53443a78fc42a9a7a6ec6eaf33e656b7ae673b7c86"
     },
     {
       "path": "docs/SECURITY.md",
@@ -249,8 +136,8 @@
     },
     {
       "path": "docs/VALIDATION.md",
-      "bytes": 3711,
-      "sha256": "29e9c1d64aa44448279d006b3cbde10ddc982f4fdd88ce344327b5ccf53494e8"
+      "bytes": 3367,
+      "sha256": "75c306a122b1f0fab2ec60655d75d415b196f6ee52f54a8ce349a865580c6fdd"
     },
     {
       "path": "examples/customer.json",
@@ -308,14 +195,19 @@
       "sha256": "880805fe598b20034b8120d28077eb1ee4a764a61ce6527564ddfcc2a74fa10d"
     },
     {
+      "path": "scripts/release_manifest.py",
+      "bytes": 6954,
+      "sha256": "590f40817024dc50853397b736e4d77066501028f1573bd89821d4d57cc1d81a"
+    },
+    {
       "path": "scripts/verify.ps1",
-      "bytes": 2590,
-      "sha256": "3493f3f39c784c8b05e1c2fc5abee815649df1a25d7971b3be9a5303c1af3b9e"
+      "bytes": 2597,
+      "sha256": "ad31e8963cfb5ff5579868a858034d8790efb4a01456ff96389894ba3a845c32"
     },
     {
       "path": "scripts/verify.sh",
-      "bytes": 1858,
-      "sha256": "9ffbebe40396ef394ad5aa506d768e56eb895a4e09a6b609566c24b6eaeae009"
+      "bytes": 1863,
+      "sha256": "9228aecdf9f7aff99405f24cdab45aa419b7d4f11889bc09d7705e0ec34ac265"
     },
     {
       "path": "src/Projecta.Contracts/JsonNumber.cs",
@@ -559,8 +451,8 @@
     },
     {
       "path": "src/Projecta.Core/Projecta.Core.csproj",
-      "bytes": 306,
-      "sha256": "38b443959d524ba91f55079edcb75cbfbc146cb2464502fba632cc5ac1825428"
+      "bytes": 311,
+      "sha256": "ee35eb2ed87147d87ac9f50e84b80fd5949e4c527153a0cbe3b28703cec3c351"
     },
     {
       "path": "src/Projecta.Core/ProjectaQuery.cs",
@@ -674,8 +566,8 @@
     },
     {
       "path": "src/Projecta.SystemTextJson/ProjectaExtensions.cs",
-      "bytes": 9862,
-      "sha256": "478f173150ba41f073f70d3a5f8870365a28261380033760479a0be808ff18bd"
+      "bytes": 9770,
+      "sha256": "f982dae88bcd39f6eaf26934c21e04c4136f08994f38cbac751191e55ea1e947"
     },
     {
       "path": "src/Projecta.Tooling/Program.cs",
@@ -799,8 +691,48 @@
     },
     {
       "path": "tests/PackageConsumer/README.md",
-      "bytes": 1151,
-      "sha256": "b97fe8eba53a23ee5c92945ea07c7c607905b2a840297ba438d8f47cc45bf40e"
+      "bytes": 1130,
+      "sha256": "20039364cc865545b723e508e9c62a07c2bf20f2bdc4226bc40afc1d23a783e5"
+    },
+    {
+      "path": "tests/Projecta.Compatibility.Tests/DomTests.cs",
+      "bytes": 3882,
+      "sha256": "920c6bb139b7dc28fd3b91f0eade9f9585ac295c8731849d74540a72c50858da"
+    },
+    {
+      "path": "tests/Projecta.Compatibility.Tests/Fixtures/library.json",
+      "bytes": 604,
+      "sha256": "c368f17d68ec45fe0e0baa2dacde1f938a603bb4f579e61eb94fc57d47824919"
+    },
+    {
+      "path": "tests/Projecta.Compatibility.Tests/FuncBindingTests.cs",
+      "bytes": 2683,
+      "sha256": "bd338c709cb6e74d43220b0f1c9ac6f5f24701499ec2f0b1339587e3efce64e3"
+    },
+    {
+      "path": "tests/Projecta.Compatibility.Tests/ObjectParsingTests.cs",
+      "bytes": 732,
+      "sha256": "c5713279bf82bd0630097f1bfc185f35dafb2961945d210806f2d3c816772131"
+    },
+    {
+      "path": "tests/Projecta.Compatibility.Tests/Projecta.Compatibility.Tests.csproj",
+      "bytes": 518,
+      "sha256": "4cde754da53e4b903489db96728b5b4977a28b02b4a567d9774c4d9b40cf5ceb"
+    },
+    {
+      "path": "tests/Projecta.Compatibility.Tests/SerializationTest.cs",
+      "bytes": 2792,
+      "sha256": "1cd5962614b0d99f9d2f923717adec90aad3699fe4ef2334326f453c7e9e6cf4"
+    },
+    {
+      "path": "tests/Projecta.Compatibility.Tests/ToMillisTest.cs",
+      "bytes": 1525,
+      "sha256": "0e5485a12a03c314e2469a25a536b85b8ece8981eb24ae5836208b0f5bda1283"
+    },
+    {
+      "path": "tests/Projecta.Compatibility.Tests/UnitTest1.cs",
+      "bytes": 19814,
+      "sha256": "3e122e80fb5792c1605a1fd04ed8200e1e426b593bb3e8d4aa015791178e9c3e"
     },
     {
       "path": "tests/Projecta.EntityFrameworkCore.Tests/Program.cs",
@@ -991,46 +923,6 @@
       "path": "tests/Projecta.Tests/Projecta.Tests.csproj",
       "bytes": 391,
       "sha256": "e4ca36e448fe7360f4f81eb41a094183fcba5a795d5a831f13e02f78d82f40f8"
-    },
-    {
-      "path": "tests/Projecta.Upstream.Tests/DomTests.cs",
-      "bytes": 3868,
-      "sha256": "56cbc91ac5891b194ea909de9c605058be1591c198d4ddb636716e468dbe6e5c"
-    },
-    {
-      "path": "tests/Projecta.Upstream.Tests/Fixtures/library.json",
-      "bytes": 604,
-      "sha256": "c368f17d68ec45fe0e0baa2dacde1f938a603bb4f579e61eb94fc57d47824919"
-    },
-    {
-      "path": "tests/Projecta.Upstream.Tests/FuncBindingTests.cs",
-      "bytes": 2669,
-      "sha256": "6c4d61cee5be2037a481f11e3d99b271a47dabc59e42305e6115d68e86b4cae2"
-    },
-    {
-      "path": "tests/Projecta.Upstream.Tests/ObjectParsingTests.cs",
-      "bytes": 718,
-      "sha256": "7abd118412220160a04d425c83dc3d2035140862003bd46b496f3fd415fdb07d"
-    },
-    {
-      "path": "tests/Projecta.Upstream.Tests/Projecta.Upstream.Tests.csproj",
-      "bytes": 518,
-      "sha256": "4cde754da53e4b903489db96728b5b4977a28b02b4a567d9774c4d9b40cf5ceb"
-    },
-    {
-      "path": "tests/Projecta.Upstream.Tests/SerializationTest.cs",
-      "bytes": 2787,
-      "sha256": "b329f2f493df7a6b4b3584d42bae60b5d42400243cd851e6b99d8ebec8b91daf"
-    },
-    {
-      "path": "tests/Projecta.Upstream.Tests/ToMillisTest.cs",
-      "bytes": 1511,
-      "sha256": "3f10bc904dcd8c67955c533ecc7d9f45f308168e0757fac1b2bd9a4c3a4efebf"
-    },
-    {
-      "path": "tests/Projecta.Upstream.Tests/UnitTest1.cs",
-      "bytes": 19800,
-      "sha256": "c83710d3c03ca779908338882a5d9f239dc520e465e1403e4a1213073ecb90de"
     },
     {
       "path": "tests/fixtures/json-checker/fail1.json",

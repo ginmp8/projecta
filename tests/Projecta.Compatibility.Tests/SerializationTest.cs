@@ -2,7 +2,7 @@ using System;
 using Projecta.Json;
 using NUnit.Framework;
 
-namespace Projecta.Tests
+namespace Projecta.Compatibility.Tests
 {
     public sealed class SerializationTest
     {
@@ -14,7 +14,7 @@ namespace Projecta.Tests
             Assert.AreEqual(source, result);
         }
 
-        //see https://github.com/mikhail-barg/jsonata.net.native/issues/7
+        // Regression: escaped quotes inside JSON string values.
         [Test]
         public void Test_Issue7()
         {

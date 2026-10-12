@@ -3,7 +3,7 @@ using Projecta;
 using Projecta.Json;
 using NUnit.Framework;
 
-namespace Projecta.Tests
+namespace Projecta.Compatibility.Tests
 {
     public sealed class FuncBindingTests
     {

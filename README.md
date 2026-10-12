@@ -4,11 +4,11 @@
 
 Version **0.2.0**. Dynamic JSONata rules, heterogeneous object sources, typed destinations, bounded execution, optional data contracts, streaming records, document operations and restricted compiled projections.
 
-## Release qualification
+## Compatibility and validation
 
-The complete Linux solution is built and tested with .NET SDK **10.0.302** / runtime **10.0.10** and the exact declared EF Core/Newtonsoft/NUnit versions, using an independently supplied offline NuGet closure. See [validation](docs/VALIDATION.md) for measured counts, artifact identity and remaining unexecuted gates.
+Projecta 0.2.0 targets .NET 10 / C# 14 and uses centrally managed NuGet dependencies. The repository contains source, tests, CI configuration and build scripts; the package/version metadata is defined in `Directory.Build.props`.
 
-This source and package distribution has been tested on Linux with the declared dependency closure, but it is not a production approval. Windows/macOS, production workloads, full JSONata conformance, a live vulnerability audit and Native AOT publishing remain unverified.
+Verify the code with a .NET 10 SDK and the required dependency graph before deploying. The included regression suites do not establish full JSONata conformance, Native AOT/trimming support, production performance or behavior against every database provider. See [validation](docs/VALIDATION.md) and [feature boundaries](docs/FEATURES.md).
 
 ## Packages
 
@@ -130,7 +130,7 @@ The **explicit package-free subset** is:
 # PowerShell: -CoreOnly
 ```
 
-`--no-restore` / `-NoRestore` reuses an already successful restore. It does not turn a missing restore into a pass. Verification runs executable suites with `dotnet run`; full verification additionally runs the three retained NUnit suites with `dotnet test` and a relational SQLite test executable. CI is configured for Linux, Windows and macOS; configuration is not evidence that those runners passed.
+`--no-restore` / `-NoRestore` reuses an already successful restore. It does not turn a missing restore into a pass. Verification runs executable suites with `dotnet run`; full verification additionally runs the three NUnit suites with `dotnet test` and a relational SQLite test executable. CI is configured for Linux, Windows and macOS; configuration is not evidence that those runners passed.
 
 A local `projecta` tool can be installed from `artifacts/packages` after packaging:
 
@@ -139,8 +139,10 @@ dotnet tool install --tool-path .tools --add-source ./artifacts/packages Project
 .tools/projecta help
 ```
 
-See [tooling and examples](docs/TOOLING.md), [feature status](docs/FEATURES.md), [migration](docs/MIGRATION.md), [performance](docs/PERFORMANCE.md) and [security boundaries](docs/SECURITY.md).
+For a source integrity check, run `python3 scripts/release_manifest.py --check`. This does not replace `dotnet build` or tests.
+
+See [tooling and examples](docs/TOOLING.md), [feature status](docs/FEATURES.md), [migration](docs/MIGRATION.md), [performance](docs/PERFORMANCE.md), [security boundaries](docs/SECURITY.md).
 
 ## License
 
-MIT. Retained copyright and permission notices are in [LICENSE](LICENSE) and [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). Package names are local distribution identities; this delivery does not publish or reserve names on a package registry.
+Projecta is distributed under the MIT License, with copyright (c) 2026 ginmp. See [LICENSE](LICENSE) for the Projecta license and [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for mandatory notices covering incorporated code. The package names used here are distribution identities; they are not proof of publication or reservation on a package registry.

@@ -25,7 +25,7 @@ if ! "$core_only"; then
   dotnet run --project tests/Projecta.NewtonsoftIntegration.Tests -c Release --no-build
   dotnet run --project tests/Projecta.EntityFrameworkCore.Tests -c Release --no-build
   dotnet run --project tests/Projecta.Relational.Tests -c Release --no-build
-  for project in Projecta.Upstream.Tests Projecta.SystemTextJson.Tests Projecta.NewtonsoftJson.Tests; do
+  for project in Projecta.Compatibility.Tests Projecta.SystemTextJson.Tests Projecta.NewtonsoftJson.Tests; do
     dotnet test "tests/$project/$project.csproj" -c Release --no-build \
       --logger "trx;LogFileName=$project.trx" --results-directory artifacts/validation \
       -- RunConfiguration.TreatNoTestsAsError=true

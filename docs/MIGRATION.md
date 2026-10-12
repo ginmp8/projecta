@@ -1,33 +1,36 @@
-# Migrating from 0.1.0 to 0.2.0
+# Adopting Projecta 0.2.0
 
-This remains a pre-1.0 release line. Existing high-level constructor/Compile/Project/ProjectToToken signatures, type-registry behavior and optional adapter boundaries are retained. The original 110-case executable suite still passes. This is bounded compatibility evidence, not a promise about every low-level undocumented behavior.
+Projecta 0.2.0 is the version to reference when adopting the standalone library. Use the package identities shown in the [README](../README.md); public Projecta assembly names, namespaces and existing high-level `Compile`, `Project` and `ProjectToToken` APIs are retained.
 
-## Opt-in additions
+This release requires .NET 10. Centrally managed dependency versions are defined in `Directory.Packages.props`; the optional Newtonsoft.Json, EF Core and generator integrations require their respective build/runtime dependencies. Projecta does not own a database schema and does not require a database migration.
 
-Selective reading defaults off. Schemas require an explicit provider. Functions require a catalog plus per-call allowlist. Context-bearing and JsonTypeInfo APIs use distinct names to avoid ambiguity with existing cancellation-token overloads. Streaming, document operations, LINQ projection, code generation and tooling are separate modules.
+## Opt-in features
 
-No data migration, database change or network service is required. New output/input schemas can intentionally reject previously accepted data; deploy rule changes with application-owned versioning and rollback. Do not reuse a compiled plan as an authorization token.
+- **Selective reading:** disabled by default. Enable only for rules whose source dependencies can be conservatively determined. Input-schema validation requires the full source and disables selective input normalization.
+- **Contracts:** configure an explicit schema provider to validate inputs and outputs. Unsupported schema assertions and remote references are rejected.
+- **Functions:** register trusted callbacks in a function catalog, allowlist their names per execution context and explicitly opt in to impure functions.
+- **Context-aware execution:** contexts detach provided variable data. Context and `JsonTypeInfo<T>` overloads are explicitly named to avoid ambiguity with cancellation-token overloads.
+- **Output policy:** omit null object properties only with `ProjectionNullProperties.Omit`; null array positions are unchanged.
+- **Streaming, document transforms, LINQ and code generation:** each is a separate module/profile with distinct limitations; a dynamic JSONata rule is not automatically SQL-translatable or statically generatable.
 
-## Observable fixes
+## Behavior to validate when integrating
 
-Decimal-backed values retain their numeric precision through direct writing and supported bridges. Tiny finite doubles no longer become zero through an intermediate decimal cast. Numeric equality no longer treats arbitrary different tiny values as equal through a broad epsilon. Consumers that relied on rounded serialization or approximate equality must update their expectations deliberately.
+- Decimal-backed values preserve numeric precision in supported serialization paths. Very small finite doubles are not coerced to zero through an intermediate decimal conversion, and numeric equality does not treat arbitrary small values as equal using a broad epsilon.
+- Rule and schema validation rejects duplicate or unsupported definitions rather than accepting ambiguous inputs. Distinguish undefined values from explicit JSON null and test missing/required destination properties.
+- `AllowedRootMembers` can filter root members from supported source shapes. `IncludeProperty` still runs for CLR source properties; the library does not freeze the closure state of the callback. Data-exposure filtering does **not** replace application authorization.
+- Authoring preflight and plan explanations are conservative and do not execute arbitrary source getters. Warnings describe unresolved cases, not proven acceptance.
+- `ProjectionRuleRegistry` is in-memory. Persist and coordinate active rule versions in the host when running across processes. `ProjectionReplayIdentity` fingerprints configuration, not input bytes or cryptographic provenance.
+- `ProjectionComparer` can expose data-dependent output property names through JSON Pointer paths when called programmatically. CLI comparison omits pointers by default.
+- JSONata `$eval` remains disabled by default. Default date serialization remains ISO-based unless an explicit custom format is configured.
+- Optional EF Core integration is scoped to tracked entities and a DbContext. Validate navigation loading, relationship restrictions and permitted scalar updates for the actual provider; no implicit `SaveChanges` or domain-invariant enforcement is provided.
 
-Configuration rejects duplicate members and unsupported schema assertions rather than accepting ambiguous definitions. CLI/document profiles have explicit limits and supported subsets; do not treat a successful dynamic expression as proof it can be translated/generated.
+## Adoption and rollback checklist
 
-## Adoption sequence
+1. Reference version `0.2.0` of the required modules and restore the dependency graph with the target .NET 10 SDK.
+2. Run `scripts/verify.ps1` or `scripts/verify.sh`, the package-consumer example and your application's regression tests.
+3. Exercise representative DTO, dictionary, JSON DOM and EF sources, including null/required members, converters and decimal values.
+4. Enable additional modules individually, validate contracts and enforce host authorization before supplying rules, source objects or execution context.
+5. For provider projections, inspect generated SQL and execute the relational tests with the intended provider.
+6. For static generation, verify the consumer compiler host and source-generator diagnostics.
 
-1. Run existing application tests plus `scripts/verify.ps1` (or `.sh`) with the exact packages and intended OS.
-2. Test representative DTO/JSON/EF sources and converters, including missing/null/required fields and decimal values.
-3. Enable a new module separately; enforce application authorization before passing rules, data and context.
-4. For provider projection, run the relational suite and inspect SQL for your provider before rollout.
-5. For code generation, build the consumer with a compatible .NET 10 compiler host; retain compile-time diagnostics as errors.
-
-Rollback is replacing packages/rules with the previously qualified versions. The library owns no persistent schema or deployment state. Never mutate a published package version; generate a new version for subsequent repairs.
-
-## Additional changes in 0.2.0
-
-No existing projection call needs to adopt authoring or replay APIs. Existing default null-property behavior, complete-reading default and object materialization contracts are preserved. The optional `AllowedRootMembers` property is new and must be configured deliberately. Existing `IncludeProperty` callbacks still run for CLR source properties; their closure state is not frozen by the library.
-
-The new `ProjectionInspector` has a bounded static scope. Treat preflight warnings as unresolved runtime questions, not validation success. `ProjectionRuleRegistry` does not persist activation state across processes; distribute source and active version through the host's established store when needed. `ProjectionReplayIdentity` is a configuration identity, not a record of input bytes or a signature. Programmatic comparisons can expose dynamic output field names through JSON Pointers; the CLI omits pointers by default.
-
-The legacy bundled test data now includes a deterministic local library dataset instead of an unresolvable relative external path. `$eval` remains disabled by default, and the corresponding test asserts this security behavior. Historical date-format expectations were corrected to the existing ISO default while preserving an explicit custom-format test. These corrections do not change public date conversion defaults.
+Application rollback consists of restoring the previously qualified application/package state and rule definitions. The library does not provide a persistence migration or deployment rollback system. Published NuGet versions must remain immutable.

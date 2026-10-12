@@ -4,7 +4,7 @@ using Projecta;
 using Projecta.Impl;
 using NUnit.Framework;
 
-namespace Projecta.Tests
+namespace Projecta.Compatibility.Tests
 {
     public class DomTests
     {

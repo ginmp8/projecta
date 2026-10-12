@@ -39,7 +39,7 @@ namespace Projecta.TestData
                 "date-time", 
                 new { dt = new DateTime(2024, 1, 2, 3, 4, 5) }, 
                 expectedJson: "{\"dt\":\"2024-01-02T03:04:05.0000000\"}", 
-                expectedJsonNewtonsoft: "{\"dt\":\"2024-01-02T03:04:05.0000000\"}",
+                expectedJsonNewtonsoft: "{\"dt\":\"2024-01-02T03:04:05.0000000\"}", 
                 expectedJsonSystemText: "{\"dt\":\"2024-01-02T03:04:05\"}"
             );
             yield return new TestData(

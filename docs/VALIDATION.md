@@ -1,48 +1,51 @@
-# Validation: 0.2.0
+# Verification and validation
 
-## Scope and verdict
+Projecta 0.2.0 targets `net10.0` / C# 14. Use a .NET 10 SDK and the dependency versions declared in `Directory.Packages.props`. This guide describes repeatable checks; the presence of a script or CI workflow is not evidence of a passing run.
 
-**Executed and passed: complete Linux .NET 10 source build, configured executable tests, exact declared optional NuGet integrations, relational SQLite checks, built packages and independent package consumer.** These results do not constitute production approval. This page describes the included immutable candidate and its measured limitations; previous-candidate results are not substituted for current verification.
+## Source integrity
 
-## Environment and provenance
+```sh
+python3 scripts/release_manifest.py --check
+```
 
-- Linux x64; .NET SDK **10.0.302** / installed .NET 10 runtime; project targets `net10.0` and C# 14.
-- Release build: **0 errors and 0 warnings**, `TreatWarningsAsErrors` preserved.
-- `Projecta.slnx` restored using the exact direct and transitively resolved NuGet closure supplied as a verified **35-package offline bundle**, without changing `Directory.Packages.props` or project dependencies. Local SDK/feed/cache paths were validation-only and are not project dependencies.
-- Source and package file hashes are in `DISTRIBUTION-MANIFEST.json` and `artifacts/validation/packages.json`; do not rely on mutable local NuGet caches.
+This verifies the checked-in source inventory, SHA-256 file hashes, version and key metadata, 11 packable modules, project and solution references, license files and internal compatibility-test naming. Run `python3 scripts/release_manifest.py --write` after intentional source changes that will be included in a new distribution snapshot. This check is structural; it does **not** restore dependencies, compile C# or execute tests.
 
-## Executed checks
-
-| Gate | Passed | Failed | Evidence |
-|---|---:|---:|---|
-| Original package-free core regression suite | 110 | 0 | `core-tests.json` |
-| Evolution / robustness / authoring / CLI regression suite | 273 | 0 | `evolution-tests.json` |
-| Finite JSONata semantic corpus | 490 | 0 | `semantics.json` |
-| Source-generated mapper consumer checks | 102 | 0 | `build-and-tests.log` |
-| Newtonsoft optional bridge smoke | 12 | 0 | `build-and-tests.log` |
-| EF Core tracked entity/proxy smoke | 9 | 0 | `build-and-tests.log` |
-| SQLite relational SQL tests | 5 | 0 | `build-and-tests.log` |
-| Existing upstream NUnit language tests | 83 | 0 | `Projecta.Upstream.Tests.trx` |
-| NUnit System.Text.Json suite | 26 | 0 | `Projecta.SystemTextJson.Tests.trx` |
-| NUnit Newtonsoft.Json suite | 29 | 0 | `Projecta.NewtonsoftJson.Tests.trx` |
-| Standalone packaged consumer from fresh local NuGet feed | 22 | 0 | `package-consumer.log` |
-
-The `Projecta.Tooling` package was also **installed** from its `.nupkg` and its help command executed (`tool-install.log`). All **11 Projecta package archives** were generated during development of this 0.2.0 release (`packages.json`). Tests nested in individual suites (including 600 fuzz inputs) are not double counted. Full release commands:
+## Build and test
 
 ```sh
 ./scripts/verify.sh
 ./scripts/pack.sh
-# After packaging, follow tests/PackageConsumer/README.md
 ```
 
-The test project assembly versions, provider identity, artifact set and baseline scenarios are fixed in checked-in configs; zero-test execution is not reported as coverage. Any change to candidate files after validating them requires another full gate.
+On Windows or any PowerShell host:
 
-## Important limitations
+```powershell
+./scripts/verify.ps1
+./scripts/pack.ps1
+```
 
-1. **Other OSes:** Windows and macOS are included in CI definitions but were **not executed** in this sandbox.
-2. **Language equivalence:** 490 maintained corpus cases passed; this does **not** establish complete JSONata conformance or arbitrary expression equivalence.
-3. **Provider scope:** real SQLite SQL tests passed, but no live PostgreSQL or SQL Server provider execution is claimed; LINQ translates only an explicit scalar subset.
-4. **Host safety:** third-party getters/adapters and explicitly authorized callbacks may have side effects; root allowlists are not tenant authorization.
-5. **Runtime delivery:** Native AOT/trimming publish, production workloads, exhaustive fuzzing, vulnerability-advisory freshness audit and signing are not qualified.
+The verification scripts compile the solution, run executable regression/semantic/generator/provider suites and invoke the NUnit test projects. Full verification includes the optional Newtonsoft.Json and EF Core integrations; the `--core-only` (or `-CoreOnly`) profile verifies only the defined package-free subset. Reusing `--no-restore` requires a previously successful restore and does not validate dependency availability.
 
-See `docs/FEATURES.md` for precise supported subsets and `docs/AUTHORING.md` for new API constraints.
+The suite families cover expression and mapping regressions, maintained semantic fixtures, adversarial inputs, source generation, JSON DOM adapters, EF Core tracked/proxy behavior, relational SQLite behavior and package consumers. Test counts and results must be taken from the current execution output, not from historical local runs.
+
+## Consumer smoke test
+
+After packaging into `artifacts/packages`, validate restoration and usage from the local feed:
+
+```sh
+dotnet restore tests/PackageConsumer/Consumer.csproj --configfile tests/PackageConsumer/NuGet.Config --packages artifacts/consumer-cache --force
+dotnet run --project tests/PackageConsumer/Consumer.csproj -c Release --no-restore
+```
+
+CI is configured to run the full workflow on Linux, Windows and macOS and retain validation/package artifacts. Confirm the actual workflow result for the revision being released; configuration alone does not establish portability.
+
+## Evidence and qualification boundaries
+
+- **Source check:** proves that files match the recorded source snapshot, not that binaries were built.
+- **Build and tests:** prove behavior only for the executed environment, dependency graph and exercised scenarios.
+- **Security:** run vulnerability/dependency checks separately; do not equate input-exposure allowlists with authorization or trusted-host-function execution with a sandbox.
+- **Provider integration:** validate generated SQL and database behavior on every supported provider, not only in-memory or SQLite profiles.
+- **Performance:** follow [benchmark instructions](PERFORMANCE.md); report platform, runtime, dataset, repetitions, raw measurements and allocations when making quantified claims.
+- **Unqualified by these scripts:** full JSONata language equivalence, arbitrary database SQL translation, Native AOT/trimming, production latency/capacity and production operational safety.
+
+A release approval must rely on execution evidence for the precise source revision, runtime and dependency versions.

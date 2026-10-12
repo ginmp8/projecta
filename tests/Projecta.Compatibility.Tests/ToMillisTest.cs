@@ -2,7 +2,7 @@ using System;
 using Projecta.Eval;
 using NUnit.Framework;
 
-namespace Projecta.Tests
+namespace Projecta.Compatibility.Tests
 {
     public class ToMillisTest
     {

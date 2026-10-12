@@ -20,7 +20,7 @@ try {
         Invoke-Dotnet run --project tests/Projecta.NewtonsoftIntegration.Tests -c Release --no-build
         Invoke-Dotnet run --project tests/Projecta.EntityFrameworkCore.Tests -c Release --no-build
         Invoke-Dotnet run --project tests/Projecta.Relational.Tests -c Release --no-build
-        foreach ($project in @('Projecta.Upstream.Tests', 'Projecta.SystemTextJson.Tests', 'Projecta.NewtonsoftJson.Tests')) {
+        foreach ($project in @('Projecta.Compatibility.Tests', 'Projecta.SystemTextJson.Tests', 'Projecta.NewtonsoftJson.Tests')) {
             $trx = "$project.trx"
             $path = Join-Path 'artifacts/validation' $trx
             if (Test-Path $path) { Remove-Item $path }

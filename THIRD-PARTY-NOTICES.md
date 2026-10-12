@@ -1,8 +1,9 @@
-# Third-party notices
+# Third-party license notices
 
-The JSONata engine and the JSON bridges derive from jsonata.net.native by Mikhail Barg, MIT.
-Original repository: https://github.com/mikhail-barg/jsonata.net.native
-Input archive SHA-256: e0108b9cdb6d0429f55351d3f149fe695affd4fcbc375e30f01f086f53ef5e76
+Portions of the expression evaluator, parser, JSON DOM and adapters distributed
+with Projecta incorporate MIT-licensed third-party code. The original copyright
+and permission notice for those portions is preserved below. This notice does
+not designate the author, owner or maintainer of Projecta.
 
 MIT License
 

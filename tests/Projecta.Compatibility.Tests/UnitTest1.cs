@@ -4,7 +4,7 @@ using NUnit.Framework;
 using System.IO;
 using Projecta.Json;
 
-namespace Projecta.Tests
+namespace Projecta.Compatibility.Tests
 {
     public class UnitTest1
     {
