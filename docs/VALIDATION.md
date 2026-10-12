@@ -1,4 +1,4 @@
-# Validation report - Projecta 0.2.0-alpha.1
+# Validation report - Projecta 0.1.0
 
 ## Executed
 

@@ -4,7 +4,7 @@
 
 Projecta incorporates and evolves the MIT-licensed `jsonata.net.native` engine supplied for this fork. It does **not** reference the `Jsonata.Net.Native` NuGet packages. It has no application, API, database service or product-specific dependency.
 
-Version: **0.2.0-alpha.1**. This is a new package identity, not an upstream JSONata release. Package names have not been published or reserved on nuget.org.
+Version: **0.1.0**. This is a new package identity, not an upstream JSONata release. Package names have not been published or reserved on nuget.org.
 
 ## Validation status
 

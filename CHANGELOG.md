@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0-alpha.1
+## 0.1.0
 
 - New standalone Projecta identity and namespaces; native JSONata engine incorporated as source.
 - .NET 10/C# 14 throughout; central build/package policy and new NuGet package boundaries.

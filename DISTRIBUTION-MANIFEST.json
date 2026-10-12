@@ -1,6 +1,6 @@
 {
   "name": "Projecta",
-  "version": "0.2.0-alpha.1",
+  "version": "0.1.0",
   "target_framework": "net10.0",
   "upstream_archive_sha256": "e0108b9cdb6d0429f55351d3f149fe695affd4fcbc375e30f01f086f53ef5e76",
   "evidence": {
@@ -762,17 +762,17 @@
   ],
   "original_manifest_entries_not_bundled": [
     {
-      "path": "artifacts/packages/Projecta.0.2.0-alpha.1.nupkg",
+      "path": "artifacts/packages/Projecta.0.1.0.nupkg",
       "size": 17874,
       "sha256": "209d6200e63d2ca54fe1a1291dcbc7f0a192cca8910e6e50a0a4cf616e4860c9"
     },
     {
-      "path": "artifacts/packages/Projecta.Core.0.2.0-alpha.1.nupkg",
+      "path": "artifacts/packages/Projecta.Core.0.1.0.nupkg",
       "size": 87848,
       "sha256": "777fe689635552a8df23b28b682640e9695a3c25d746f1414953e86984ca7c21"
     },
     {
-      "path": "artifacts/packages/Projecta.SystemTextJson.0.2.0-alpha.1.nupkg",
+      "path": "artifacts/packages/Projecta.SystemTextJson.0.1.0.nupkg",
       "size": 13670,
       "sha256": "08e4ddda2aac734108ea8bff621b40e135e01aea1ad63fe87a00ca500bf58749"
     },
