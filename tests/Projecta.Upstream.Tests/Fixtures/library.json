@@ -1,0 +1,20 @@
+{
+  "library": {
+    "books": [
+      {"isbn":"111", "title":"Structure and Interpretation of Computer Programs"},
+      {"isbn":"333", "title":"Placeholder B"},
+      {"isbn":"444", "title":"Placeholder C"},
+      {"isbn":"222", "title":"Compilers: Principles, Techniques, and Tools"}
+    ],
+    "loans": [
+      {"isbn":"111", "customer":"10001"},
+      {"isbn":"222", "customer":"10003"},
+      {"isbn":"111", "customer":"10003"}
+    ],
+    "customers": [
+      {"id":"10001", "name":"Joe Doe"},
+      {"id":"10002", "name":"Another Customer"},
+      {"id":"10003", "name":"Jason Arthur"}
+    ]
+  }
+}

@@ -9,4 +9,4 @@ dotnet restore tests/PackageConsumer/Consumer.csproj --configfile tests/PackageC
 dotnet run --project tests/PackageConsumer/Consumer.csproj -c Release --no-restore
 ```
 
-Use an empty `artifacts/consumer-cache` for a new unpublished candidate to avoid reusing packages with stale identical prerelease versions. Never replace an already published package in place. The fixture tests runtime mapping, contracts, functions, destination source-generated metadata, documents, JSONL, LINQ and an actual analyzer-generated mapper. It is not a SQL-provider or Native AOT test.
+Use an empty `artifacts/consumer-cache` for a new unpublished candidate to avoid reusing packages with stale identical prerelease versions. Never replace an already published package in place. The fixture verifies 22 checks covering runtime mapping, contracts, functions, metadata-driven deserialization, documents, JSONL, LINQ, an actual analyzer-generated mapper, static rule explanations, staged atomic activation, version comparison, replay provenance and null-property policies. It is not a SQL-provider or Native AOT test.

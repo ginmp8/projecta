@@ -42,6 +42,24 @@ Verify(new[] { new Source { Id = 2, Name = "query" } }.AsQueryable().ProjectTo<S
     new ProjectionDefinition { Expression = "{'Id':Id,'Name':Name}" }).Single() == new View(2, "query"));
 Verify(Mappers.Map(new Source { Id = 42, Name = "generated" }) == new View(42, "generated"));
 Verify(projector.CachedExpressionCount > 0);
+var inspector = new ProjectionInspector(projector);
+var inspected = inspector.Inspect(definition, typeof(Source), typeof(View));
+Verify(inspected.Explanation.RuleId == definition.Id && inspected.Explanation.RuleVersion == definition.Version);
+Verify(inspector.Explain(plan).HasInputContract && inspector.Explain(plan).HasOutputContract);
+var registry = new ProjectionRuleRegistry(projector);
+var staged = registry.Stage(definition);
+Verify(registry.GetActive(definition.Id) is null);
+Verify(registry.TryActivate(definition.Id, definition.Version, expectedActiveVersion: null));
+Verify(registry.GetActive(definition.Id)?.Fingerprint == staged.Fingerprint);
+Verify(!registry.TryActivate(definition.Id, definition.Version, expectedActiveVersion: null));
+var difference = new ProjectionComparer(projector).Compare(new { id = 21, name = " Ana " }, plan, staged, context);
+Verify(difference.Equivalent && difference.BeforeRuleId == definition.Id && difference.AfterRuleId == definition.Id);
+Verify(difference.BeforeVersion == definition.Version && difference.AfterVersion == definition.Version);
+var replay = ProjectionReplayIdentity.Create(plan, projector.Options, context);
+Verify(!replay.CanReproduce && replay.Limitations.Contains("source-values-unpinned"));
+var omitProjector = new ObjectProjector(new ProjectionOptions { NullProperties = ProjectionNullProperties.Omit });
+var omitPlan = omitProjector.Compile(new ProjectionDefinition { Expression = "{'present':1,'absent':null,'array':[null]}" });
+Verify(JToken.DeepEquals(omitProjector.ProjectToToken(new { }, omitPlan), JToken.Parse("{\"present\":1,\"array\":[null]}")));
 Console.WriteLine($"PACKAGE-CONSUMER passed={checks} failed=0 source=NuGet");
 
 public sealed record View(long Id, string Name);

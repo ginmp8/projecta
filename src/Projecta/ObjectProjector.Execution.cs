@@ -18,6 +18,15 @@ public sealed partial class ObjectProjector
     {
         ArgumentNullException.ThrowIfNull(projection);
         long started = Stopwatch.GetTimestamp();
+        long stageStarted = started;
+        ProjectionPhase phase = ProjectionPhase.Context;
+        void EnterPhase(ProjectionPhase next)
+        {
+            ProjectionTelemetry.RecordStage(phase, stageStarted);
+            phase = next;
+            stageStarted = Stopwatch.GetTimestamp();
+            SetPhase(state, next);
+        }
         using var activity = ProjectionTelemetry.ActivitySource.StartActivity("project");
         activity?.SetTag("projecta.plan", projection.Fingerprint);
         ProjectionTelemetry.Executions.Add(1);
@@ -25,18 +34,20 @@ public sealed partial class ObjectProjector
         {
             SetPhase(state, ProjectionPhase.Context);
             var environment = context.CreateEnvironment(_options.Functions ?? ProjectionFunctionCatalog.Empty, _options.Bindings, cancellationToken);
-            SetPhase(state, ProjectionPhase.Source);
+            EnterPhase(ProjectionPhase.Source);
             JToken input = _options.EnableSelectiveReading && projection.InputContract is null && projection.Dependencies.CanSelectRootMembers
-                ? _reader.ReadSelected(source, new HashSet<string>(projection.Dependencies.RootMembers, StringComparer.Ordinal), cancellationToken)
+                ? _reader.ReadSelectedPaths(source, projection.Dependencies.PropertyPaths, cancellationToken)
                 : _reader.Read(source, cancellationToken);
-            SetPhase(state, ProjectionPhase.InputContract);
+            EnterPhase(ProjectionPhase.InputContract);
             ValidateContract(projection.InputContract, input, cancellationToken);
-            SetPhase(state, ProjectionPhase.Evaluate);
+            EnterPhase(ProjectionPhase.Evaluate);
             JToken result = projection.Query.Eval(input, environment, _options.Evaluation, cancellationToken);
             if (result.Type == JTokenType.Undefined)
                 throw new ProjectionMaterializationException("Projection returned undefined; provide a fallback in the rule.");
             TokenValidation.Validate(result, _options.Output, cancellationToken);
-            SetPhase(state, ProjectionPhase.OutputContract);
+            if (_options.NullProperties == ProjectionNullProperties.Omit)
+                result = OmitNullProperties(result, cancellationToken);
+            EnterPhase(ProjectionPhase.OutputContract);
             ValidateContract(projection.OutputContract, result, cancellationToken);
             return result;
         }
@@ -46,7 +57,34 @@ public sealed partial class ObjectProjector
             ProjectionTelemetry.Failures.Add(1);
             throw;
         }
-        finally { ProjectionTelemetry.Duration.Record(Stopwatch.GetElapsedTime(started).TotalMilliseconds); }
+        finally
+        {
+            ProjectionTelemetry.RecordStage(phase, stageStarted);
+            ProjectionTelemetry.Duration.Record(Stopwatch.GetElapsedTime(started).TotalMilliseconds);
+        }
+    }
+
+    private static JToken OmitNullProperties(JToken input, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        switch (input)
+        {
+            case JObject obj:
+                var result = new JObject();
+                foreach (var property in obj.Properties)
+                {
+                    if (property.Value.Type == JTokenType.Null) continue;
+                    result.Add(property.Key, OmitNullProperties(property.Value, cancellationToken));
+                }
+                return result;
+            case JArray array:
+                var children = new JArray();
+                foreach (var element in array.ChildrenTokens)
+                    children.Add(OmitNullProperties(element, cancellationToken));
+                return children;
+            default:
+                return input;
+        }
     }
 
     private static void SetPhase(ProjectionExecutionState? state, ProjectionPhase phase) { if (state is not null) state.Phase = phase; }
@@ -92,9 +130,14 @@ public sealed partial class ObjectProjector
     {
         ArgumentNullException.ThrowIfNull(typeInfo);
         JToken result = Evaluate(source, projection, context ?? ProjectionExecutionContext.Empty, cancellationToken);
-        T? value = JsonSerializer.Deserialize(NativeJsonWriter.ToUtf8Bytes(result, _options.Output, cancellationToken), typeInfo);
-        cancellationToken.ThrowIfCancellationRequested();
-        return value;
+        long materializeStarted = Stopwatch.GetTimestamp();
+        try
+        {
+            T? value = JsonSerializer.Deserialize(NativeJsonWriter.ToUtf8Bytes(result, _options.Output, cancellationToken), typeInfo);
+            cancellationToken.ThrowIfCancellationRequested();
+            return value;
+        }
+        finally { ProjectionTelemetry.RecordStage(ProjectionPhase.Materialize, materializeStarted); }
     }
 
     public ProjectionResult<T> TryProject<T>(object? source, CompiledProjection projection,
@@ -122,6 +165,9 @@ public sealed partial class ObjectProjector
 
     private object? Materialize(JToken result, Type targetType, CancellationToken cancellationToken)
     {
+        long started = Stopwatch.GetTimestamp();
+        try
+        {
         foreach (var materializer in _materializers)
             if (materializer.CanMaterialize(targetType))
             {
@@ -148,5 +194,7 @@ public sealed partial class ObjectProjector
         }
         catch (Exception ex) when (ProjectionErrors.CanReport(ex))
         { throw new ProjectionMaterializationException("Projected data is incompatible with the requested target contract.", ex); }
+        }
+        finally { ProjectionTelemetry.RecordStage(ProjectionPhase.Materialize, started); }
     }
 }

@@ -15,6 +15,7 @@ Test("diagnostic: arithmetic errors retain AST position", () =>
     Check.True(ex.Position is >= 0);
 });
 CoreEvolutionTests.Register(Test);
+AuthoringTests.Register(Test);
 SchemaTests.Register(Test);
 AdversarialTests.Register(Test);
 ToolingTests.Register(Test);

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.4.0-alpha.1
+
+- Added conservative type-aware preflight and deterministic, redacted plan explanations.
+- Added bounded rule registry with immutable staged versions, atomic compare-and-swap promotion and rollback.
+- Added finite, bounded rule comparison with both rule identities, versions and metadata-only differences.
+- Added opt-in null-object-property omission and unified root-member exposure filtering for POCO, JSON DOM, dictionary and array-element inputs.
+- Extended conservative static POCO reading from root members to nested member paths and enumerable items.
+- Added stage-level metrics and execution-profile replay identifiers covering binding and output policies.
+- Added CLI `explain`/`compare` with automatic pointer redaction, and extra regression tests.
+- Froze caller-owned exposure collections at projector construction to prevent configuration drift.
+- Restored reproducible in-repository test datasets and aligned Newtonsoft date-oracle expectations to the documented ISO default while retaining explicit custom-format coverage.
+- Verified the full offline dependency closure and Linux optional suites; production, Native AOT and non-Linux gates remain separate.
+
+
 ## 0.3.0-alpha.1
 
 - Added immutable execution contexts, allowlisted host functions and structured diagnostics.

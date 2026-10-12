@@ -1,15 +1,15 @@
-# Projecta 0.3.0-alpha.1
+# Projecta 0.4.0-alpha.1
 
-This release expands Projecta from dynamic projection into a modular projection/document toolkit without adding an ORM or validation dependency to the core.
+This prerelease extends the standalone .NET 10 object-projection toolkit with authoring, rule lifecycle and safer operational visibility. Its core remains independent of ORMs and host frameworks.
 
-**New runtime capabilities:** detached per-execution variables, explicitly allowed functions, structured errors, input/output data contracts, ordered streaming records, document pointers/patches/merge patches and versioned transformation pipelines.
+**Authoring:** `ProjectionInspector` reports statically known source/target members, required destination fields and indeterminate checks; `Explain` exposes a frozen plan fingerprint, literal dependency paths and conservative fallback reasons without executing source getters.
 
-**New static capabilities:** a restricted scalar LINQ Select builder and an incremental mapper generator for .NET 10 compiler hosts. Neither accepts the full dynamic language. Provider SQL and Native AOT remain separately qualified concerns.
+**Rules:** `ProjectionRuleRegistry` compiles versions before publishing, bounds retained rules, disallows replacing a version with different content and supports compare-and-swap activation/rollback. `ProjectionComparer` evaluates two plans and reports metadata-only differences with both IDs and versions, including failed evaluations.
 
-**Implementation improvements:** selective root POCO reading, direct UTF-8 destination materialization, numeric fidelity, bounded concurrent compilation outside the cache lock and metadata-only evaluation telemetry.
+**Execution:** explicit `ProjectionNullProperties.Omit` removes null object fields before output-contract validation, while arrays retain null items. Optional `AllowedRootMembers` is applied to root data in POCOs, dictionaries, native/standard JSON containers and array elements. Conservative selection supports nested POCO property paths. Mutated caller-owned allowlists cannot change a running projector policy snapshot.
 
-**Developer tools:** local CLI, finite semantic fixture runner, repeatable synthetic measurements, full/package-free solution entry points, cross-platform verification/pack scripts and configured CI.
+**Operations:** low-cardinality stage timing metrics, non-plaintext replay-profile fingerprints with explicit missing-provenance qualifications, CLI `explain`/`compare` and redaction of data-dependent difference keys in CLI output.
 
-See `docs/FEATURES.md` for exact capability boundaries and `docs/VALIDATION.md` for executed versus blocked checks. This source distribution includes optional adapter/test sources whose exact dependency closure could not be restored during validation. Do not treat core success as full integration or production approval.
+**Validation:** full offline Linux .NET 10 build, configured executable/NUnit/provider tests and a separate package-consumer test are included in the validation workflow. The manifest records exact executed gates and distribution hash. Non-Linux CI, full language conformance, production hardening, live NuGet audit and Native AOT publishing are not claimed.
 
-See `docs/MIGRATION.md` for precision/equality changes and adoption guidance. Package identities were not published or reserved by this delivery. Required inherited license notices remain included.
+See `docs/AUTHORING.md`, `docs/VALIDATION.md`, `docs/MIGRATION.md`, `docs/SECURITY.md` and `THIRD-PARTY-NOTICES.md`. Original license notices remain intact.

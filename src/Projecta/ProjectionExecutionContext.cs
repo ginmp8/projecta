@@ -48,6 +48,9 @@ public sealed class ProjectionExecutionContext
     private readonly JObject _variables;
     private readonly string[] _functions;
     public bool AllowImpureFunctions { get; }
+    /// <summary>Names only. Variable values remain private and are not exposed in diagnostics.</summary>
+    public IReadOnlyList<string> VariableNames { get; }
+    public IReadOnlyList<string> AllowedFunctionNames { get; }
     public static ProjectionExecutionContext Empty { get; } = new();
 
     public ProjectionExecutionContext(IReadOnlyDictionary<string, object?>? variables = null,
@@ -63,6 +66,7 @@ public sealed class ProjectionExecutionContext
                     throw new ProjectionConfigurationException("Duplicate variable or binding limit exceeded.");
             }
         _variables = (JObject)new ObjectReader(bindingLimits).Read(snapshot);
+        VariableNames = Array.AsReadOnly(snapshot.Keys.OrderBy(s => s, StringComparer.Ordinal).ToArray());
         var functions = new HashSet<string>(StringComparer.Ordinal);
         if (allowedFunctions is not null)
             foreach (string name in allowedFunctions)
@@ -73,6 +77,7 @@ public sealed class ProjectionExecutionContext
                 functions.Add(name);
             }
         _functions = functions.OrderBy(x => x, StringComparer.Ordinal).ToArray();
+        AllowedFunctionNames = Array.AsReadOnly(_functions);
         AllowImpureFunctions = allowImpureFunctions;
     }
 

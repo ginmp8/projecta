@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -18,6 +19,7 @@ public interface IProjectionTargetMaterializer
 public sealed partial class ObjectProjector
 {
     private readonly ProjectionOptions _options;
+    public ProjectionOptions Options => _options;
     private readonly ObjectReader _reader;
     private readonly IProjectionTargetMaterializer[] _materializers;
     private readonly JsonSerializerOptions _json;
@@ -35,8 +37,15 @@ public sealed partial class ObjectProjector
         IEnumerable<IObjectSourceAdapter>? sourceAdapters = null,
         IEnumerable<IProjectionTargetMaterializer>? targetMaterializers = null)
     {
-        _options = options ?? new ProjectionOptions();
-        if (_options.CacheCapacity < 1 || _options.MaxConcurrentCompilations is < 1 or > 128)
+        var supplied = options ?? new ProjectionOptions();
+        // Freeze caller-owned collections so reader, preflight and replay metadata see identical policies.
+        _options = supplied with
+        {
+            Source = Snapshot(supplied.Source),
+            Output = Snapshot(supplied.Output),
+            Bindings = Snapshot(supplied.Bindings)
+        };
+        if (_options.CacheCapacity < 1 || _options.MaxConcurrentCompilations is < 1 or > 128 || !Enum.IsDefined(_options.NullProperties))
             throw new ArgumentOutOfRangeException(nameof(options));
         _reader = new ObjectReader(_options.Source, sourceAdapters);
         _ = new ObjectReader(_options.Output);
@@ -54,10 +63,24 @@ public sealed partial class ObjectProjector
         _json.MakeReadOnly(populateMissingResolver: true);
     }
 
+    private static ObjectReadOptions Snapshot(ObjectReadOptions source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        return source with
+        {
+            AllowedRootMembers = source.AllowedRootMembers is null ? null :
+                Array.AsReadOnly(source.AllowedRootMembers.Distinct(StringComparer.Ordinal)
+                    .OrderBy(x => x, StringComparer.Ordinal).ToArray())
+        };
+    }
+
     public CompiledProjection Compile(ProjectionDefinition definition) => Compile(definition, default);
 
     public CompiledProjection Compile(ProjectionDefinition definition, CancellationToken cancellationToken)
     {
+        long compilationStarted = Stopwatch.GetTimestamp();
+        try
+        {
         ArgumentNullException.ThrowIfNull(definition);
         cancellationToken.ThrowIfCancellationRequested();
         var snapshot = definition with
@@ -106,6 +129,8 @@ public sealed partial class ObjectProjector
         return new CompiledProjection(snapshot, query,
             snapshot.InputSchema is { } input ? _options.ContractProvider!.Compile(input) : null,
             snapshot.OutputSchema is { } output ? _options.ContractProvider!.Compile(output) : null);
+        }
+        finally { ProjectionTelemetry.RecordStage("compile", compilationStarted); }
     }
 
     private ProjectaQuery? FindCached(string expression)
