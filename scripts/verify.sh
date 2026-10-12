@@ -28,7 +28,7 @@ if ! "$core_only"; then
   for project in Projecta.Upstream.Tests Projecta.SystemTextJson.Tests Projecta.NewtonsoftJson.Tests; do
     dotnet test "tests/$project/$project.csproj" -c Release --no-build \
       --logger "trx;LogFileName=$project.trx" --results-directory artifacts/validation \
-      --settings scripts/verify.runsettings
+      -- RunConfiguration.TreatNoTestsAsError=true
   done
 fi
 if "$core_only"; then echo 'PASS: package-free verification. Optional integrations and NUnit were not run.'

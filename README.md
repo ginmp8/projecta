@@ -6,9 +6,9 @@ Version **0.2.0**. Dynamic JSONata rules, heterogeneous object sources, typed de
 
 ## Release qualification
 
-The package-free solution has been built and exercised on Linux with .NET SDK **10.0.302** / runtime **10.0.10**. The exact execution counts, package-consumer checks and archive identity are recorded in [validation](docs/VALIDATION.md).
+The complete Linux solution is built and tested with .NET SDK **10.0.302** / runtime **10.0.10** and the exact declared EF Core/Newtonsoft/NUnit versions, using an independently supplied offline NuGet closure. See [validation](docs/VALIDATION.md) for measured counts, artifact identity and remaining unexecuted gates.
 
-This is a **source and package distribution with limited validation, not a production approval**. Exact EF Core/Newtonsoft/NUnit restores and relational-provider execution remain unverified in this environment. No Windows/macOS execution, complete JSONata conformance or Native AOT publish is claimed. Every optional integration is included as source; the package inventory identifies which binaries were actually produced.
+This source and package distribution has been tested on Linux with the declared dependency closure, but it is not a production approval. Windows/macOS, production workloads, full JSONata conformance, a live vulnerability audit and Native AOT publishing remain unverified.
 
 ## Packages
 
@@ -16,13 +16,13 @@ This is a **source and package distribution with limited validation, not a produ
 |---|---|---|
 | `Projecta.Core` | JSONata parser, AST, evaluator, native JSON DOM, CLR reader and budgets | None |
 | `Projecta.SystemTextJson` | JSON DOM adapters, bounded UTF-8 writer | None |
-| `Projecta` | Immutable plans, LRU cache, contexts, diagnostics, contracts, typed materialization | None |
+| `Projecta` | Immutable plans, LRU cache, contexts, diagnostics, contracts, typed materialization, preflight, rule versions, comparisons and execution-profile identities | None |
 | `Projecta.Contracts` | Explicit structural JSON Schema profile | None |
 | `Projecta.Streaming` | Ordered batches and incremental JSONL | None |
 | `Projecta.Documents` | JSON Pointer, document patches, merge patches and pipelines | None |
 | `Projecta.Queryable` | Restricted scalar LINQ `Select` expression builder | None |
 | `Projecta.SourceGeneration` | Static mapper generator for .NET 10 compiler hosts | SDK compiler assemblies at build time |
-| `Projecta.Tooling` | Local CLI: validate, preview, JSONL, patch, pipeline, conformance and benchmark | None |
+| `Projecta.Tooling` | Local CLI: validate, preview, explain, compare, JSONL, patch, pipeline, conformance and benchmark | None |
 | `Projecta.NewtonsoftJson` | Optional `JObject`/`JArray`/`JValue` adapters | Newtonsoft.Json |
 | `Projecta.EntityFrameworkCore` | Optional tracked-entity snapshots and explicitly permitted scalar updates | EF Core 10 |
 
@@ -82,13 +82,17 @@ Contexts detach variable data at construction and isolate evaluations. Variable 
 
 **Contracts.** Configure `ContractProvider = new JsonSchemaContractProvider()` and supply `inputSchema` / `outputSchema` in a definition. Unsupported assertions fail during compilation, and remote references are not resolved. The [contract profile](docs/CONTRACTS.md) is deliberately smaller than complete JSON Schema.
 
-**Selective reading.** Set `EnableSelectiveReading = true` to prune statically proven root POCO members. Dynamic/context-dependent expressions fall back to full reading. Input contracts disable pruning so validation sees the full input. Nested selected subtrees are still normalized completely. Existing adapters keep their source-specific policies.
+**Selective reading and exposure.** Set `EnableSelectiveReading = true` to prune statically proven literal POCO paths, including nested properties and array items. Dynamic/context-dependent expressions fall back to complete reads. Input contracts disable optimization so validation sees complete inputs. `Source.AllowedRootMembers` is a separate, optional exposure policy for JSON DOMs, dictionaries and ordinary CLR objects; it is **not** tenant authorization or a guarantee that a custom adapter avoids reading prohibited properties. See [authoring and rule lifecycle](docs/AUTHORING.md).
 
 **Functions.** Register trusted callbacks in an immutable `ProjectionFunctionCatalog`, then authorize function names explicitly in each `ProjectionExecutionContext`. An impure callback needs additional execution opt-in. This is not arbitrary C# execution from JSON or a sandbox.
 
 **Typed metadata.** `ProjectWithTypeInfo<T>()` accepts `JsonTypeInfo<T>`. It honors the supplied serializer contract. This removes reflection from that destination path, not necessarily from source reading or the whole application.
 
 **Streaming.** `ProjectMany`, `ProjectManyAsync` and `ProjectJsonLinesAsync` reuse plans, preserve order and report per-record outcomes. JSONL is incremental by record, not a streaming evaluator for a single arbitrarily large document. See [streaming](docs/STREAMING.md).
+
+**Rule lifecycle and comparison.** `ProjectionInspector` produces an explainable, conservative preflight without invoking source getters. `ProjectionRuleRegistry` stages compiled versions and atomically activates or rolls back with compare-and-swap. `ProjectionComparer` returns bounded, metadata-only changes between two versions; the CLI redacts their pointers by default. `ProjectionReplayIdentity` fingerprints execution configuration and reports unresolved provenance. See [authoring](docs/AUTHORING.md).
+
+**Output policy.** Set `NullProperties = ProjectionNullProperties.Omit` explicitly to omit null object fields (null array slots stay present), before validating the output schema. Default behavior remains unchanged.
 
 **Document operations.** Detached patches and pipelines preserve the original document on failure. See [document operations](docs/DOCUMENTS.md).
 

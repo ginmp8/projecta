@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -24,21 +25,47 @@ public static class ProjectionCli
         {
             if (args.Length == 0 || args is ["--help"] or ["help"])
             {
-                await output.WriteLineAsync("projecta validate --rule FILE\nprojecta preview --rule FILE --input FILE\nprojecta jsonl --rule FILE --input FILE\nprojecta pipeline --definition FILE --input FILE\nprojecta patch --patch FILE --input FILE\nprojecta conformance --suite FILE\nprojecta benchmark [--iterations N --warmup N --rounds N]").ConfigureAwait(false); return 0;
+                await output.WriteLineAsync("projecta validate --rule FILE\nprojecta explain --rule FILE\nprojecta compare --before RULE --after RULE --input FILE\nprojecta preview --rule FILE --input FILE\nprojecta jsonl --rule FILE --input FILE\nprojecta pipeline --definition FILE --input FILE\nprojecta patch --patch FILE --input FILE\nprojecta conformance --suite FILE\nprojecta benchmark [--iterations N --warmup N --rounds N]").ConfigureAwait(false); return 0;
             }
             string command = args[0]; var flags = ParseFlags(args);
             string Required(string key) => flags.TryGetValue(key, out var value) ? value : throw new ProjectionConfigurationException("Missing option.");
             int Number(string key, int fallback) => flags.TryGetValue(key, out var value) && int.TryParse(value, out var number) ? number : flags.ContainsKey(key) ? throw new ProjectionConfigurationException("Invalid numeric option.") : fallback;
             string[] allowed = command switch
             {
-                "validate" => new[] { "--rule" }, "preview" or "jsonl" => new[] { "--rule", "--input" },
+                "validate" or "explain" => new[] { "--rule" }, "preview" or "jsonl" => new[] { "--rule", "--input" },
+                "compare" => new[] { "--before", "--after", "--input" },
                 "pipeline" => new[] { "--definition", "--input" }, "patch" => new[] { "--patch", "--input" },
                 "conformance" => new[] { "--suite" }, "benchmark" => new[] { "--iterations", "--warmup", "--rounds" },
                 _ => throw new ProjectionConfigurationException("Unknown command.")
             };
             foreach (string flag in flags.Keys) if (Array.IndexOf(allowed, flag) < 0) throw new ProjectionConfigurationException("Unknown option.");
             var projector = new ObjectProjector(new() { ContractProvider = new JsonSchemaContractProvider() });
-            if (command is "validate" or "preview" or "jsonl")
+            if (command == "compare")
+            {
+                var before = ProjectionDefinition.Parse(await ReadText(Required("--before"), 65_536, cancellationToken).ConfigureAwait(false));
+                var after = ProjectionDefinition.Parse(await ReadText(Required("--after"), 65_536, cancellationToken).ConfigureAwait(false));
+                var first = projector.TryCompile(before, cancellationToken);
+                var second = projector.TryCompile(after, cancellationToken);
+                if (!first.Success || !second.Success)
+                {
+                    await error.WriteLineAsync(JsonSerializer.Serialize(new { Before = first.Diagnostics, After = second.Diagnostics })).ConfigureAwait(false);
+                    return 2;
+                }
+                using var compareData = JsonDocument.Parse(await ReadBytes(Required("--input"), 8_000_000, cancellationToken).ConfigureAwait(false));
+                var report = new ProjectionComparer(projector).Compare(compareData.RootElement, first.Value!, second.Value!, cancellationToken: cancellationToken);
+                // Output keys can be computed from input values. Never write their pointers to CLI output.
+                await output.WriteLineAsync(JsonSerializer.Serialize(new
+                {
+                    report.BeforeRuleId, report.BeforeVersion, report.BeforeFingerprint, report.BeforeSucceeded,
+                    report.AfterRuleId, report.AfterVersion, report.AfterFingerprint, report.AfterSucceeded,
+                    report.Equivalent, report.Truncated,
+                    PathsRedacted = true,
+                    Differences = report.Differences.Select(x => new { x.Kind }).ToArray(),
+                    report.BeforeDiagnostics, report.AfterDiagnostics
+                })).ConfigureAwait(false);
+                return report.BeforeSucceeded && report.AfterSucceeded ? 0 : 1;
+            }
+            if (command is "validate" or "explain" or "preview" or "jsonl")
             {
                 var definition = ProjectionDefinition.Parse(await ReadText(Required("--rule"), 65_536, cancellationToken).ConfigureAwait(false));
                 var compiled = projector.TryCompile(definition, cancellationToken);
@@ -46,6 +73,8 @@ public static class ProjectionCli
                 var plan = compiled.Value!;
                 if (command == "validate")
                 { await output.WriteLineAsync(JsonSerializer.Serialize(new { valid = true, plan.Id, plan.Version, plan.Fingerprint, plan.Dependencies })).ConfigureAwait(false); return 0; }
+                if (command == "explain")
+                { await output.WriteLineAsync(JsonSerializer.Serialize(new ProjectionInspector(projector).Explain(plan))).ConfigureAwait(false); return 0; }
                 if (command == "jsonl")
                 {
                     await using var stream = File.OpenRead(Required("--input")); int failed = 0;

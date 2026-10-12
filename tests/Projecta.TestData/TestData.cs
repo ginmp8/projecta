@@ -39,21 +39,21 @@ namespace Projecta.TestData
                 "date-time", 
                 new { dt = new DateTime(2024, 1, 2, 3, 4, 5) }, 
                 expectedJson: "{\"dt\":\"2024-01-02T03:04:05.0000000\"}", 
-                expectedJsonNewtonsoft: "{\"dt\":\"02.01.2024 3:04:05\"}", 
+                expectedJsonNewtonsoft: "{\"dt\":\"2024-01-02T03:04:05.0000000\"}",
                 expectedJsonSystemText: "{\"dt\":\"2024-01-02T03:04:05\"}"
             );
             yield return new TestData(
                 "date-time-utc", 
                 new { dt = new DateTime(2024, 1, 2, 3, 4, 5, DateTimeKind.Utc) }, 
                 expectedJson: "{\"dt\":\"2024-01-02T03:04:05.0000000Z\"}",
-                expectedJsonNewtonsoft: "{\"dt\":\"02.01.2024 3:04:05\"}",
+                expectedJsonNewtonsoft: "{\"dt\":\"2024-01-02T03:04:05.0000000Z\"}",
                 expectedJsonSystemText: "{\"dt\":\"2024-01-02T03:04:05Z\"}"
             );
             yield return new TestData(
                 "date-time-offset", 
                 new { dt = new DateTimeOffset(2024, 1, 2, 3, 4, 5, TimeSpan.FromHours(2)) }, 
                 expectedJson: "{\"dt\":\"2024-01-02T03:04:05.0000000+02:00\"}",
-                expectedJsonNewtonsoft: "{\"dt\":\"02.01.2024 3:04:05\"}",
+                expectedJsonNewtonsoft: "{\"dt\":\"2024-01-02T03:04:05.0000000+02:00\"}",
                 expectedJsonSystemText: "{\"dt\":\"2024-01-02T03:04:05+02:00\"}"
             );
             yield return new TestData("timespan", new { ts = TimeSpan.FromHours(1) }, "{\"ts\":\"01:00:00\"}");

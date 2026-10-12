@@ -11,12 +11,15 @@ public sealed class QueryDependencyAnalysis
 {
     public bool CanSelectRootMembers { get; }
     public IReadOnlyList<string> RootMembers { get; }
+    /// <summary>Conservatively proven literal property paths; names are segments, not dot-separated strings.</summary>
+    public IReadOnlyList<IReadOnlyList<string>> PropertyPaths { get; }
     public string? FallbackReason { get; }
 
-    private QueryDependencyAnalysis(bool safe, IEnumerable<string> members, string? reason)
+    private QueryDependencyAnalysis(bool safe, IEnumerable<string> members, IEnumerable<string[]> paths, string? reason)
     {
         CanSelectRootMembers = safe;
         RootMembers = new ReadOnlyCollection<string>(members.OrderBy(x => x, StringComparer.Ordinal).ToArray());
+        PropertyPaths = new ReadOnlyCollection<IReadOnlyList<string>>(paths.Select(p => (IReadOnlyList<string>)Array.AsReadOnly((string[])p.Clone())).ToArray());
         FallbackReason = reason;
     }
 
@@ -24,6 +27,7 @@ public sealed class QueryDependencyAnalysis
     {
         ArgumentNullException.ThrowIfNull(query);
         var roots = new HashSet<string>(StringComparer.Ordinal);
+        var paths = new List<string[]>();
         string? reason = null;
         bool Visit(Node n, int depth)
         {
@@ -32,10 +36,11 @@ public sealed class QueryDependencyAnalysis
             { reason = "context-changing-expression"; return false; }
             switch (n)
             {
-                case NameNode name: roots.Add(name.value); return true;
+                case NameNode name: roots.Add(name.value); paths.Add(new[] { name.value }); return true;
                 case PathRuntimeNode path when path.steps.Count > 0 && path.steps.All(s => s is NameNode &&
                     s.group is null && s.predicate is not { Count: > 0 } && s.stages is not { Count: > 0 } && !s.tuple):
-                    roots.Add(((NameNode)path.steps[0]).value); return true;
+                    roots.Add(((NameNode)path.steps[0]).value);
+                    paths.Add(path.steps.Cast<NameNode>().Select(x => x.value).ToArray()); return true;
                 case StringNode or NumberIntNode or NumberDoubleNode or BoolNode or NullNode: return true;
                 case VariableNode variable when variable.value.Length > 0 && variable.value != "$": return true;
                 case UnaryMinusNode unary: return Visit(unary.expression, depth + 1);
@@ -51,6 +56,6 @@ public sealed class QueryDependencyAnalysis
             }
         }
         bool safe = Visit(query.GetAst(), 0);
-        return new QueryDependencyAnalysis(safe, safe ? roots : Array.Empty<string>(), reason);
+        return new QueryDependencyAnalysis(safe, safe ? roots : Array.Empty<string>(), safe ? paths : Array.Empty<string[]>(), reason);
     }
 }

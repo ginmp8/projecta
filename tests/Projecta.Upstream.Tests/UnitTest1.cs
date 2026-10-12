@@ -421,7 +421,7 @@ namespace Projecta.Tests
                   'ib2': $ib2
                 }
                 """,
-                "../../../../../jsonata-js/test/test-suite/datasets/library.json",
+                Path.Combine(AppContext.BaseDirectory, "Fixtures", "library.json"),
                 """
                 [
                   {
@@ -471,7 +471,7 @@ namespace Projecta.Tests
                   'ib2': $ib2
                 }
                 """,
-                "../../../../../jsonata-js/test/test-suite/datasets/library.json",
+                Path.Combine(AppContext.BaseDirectory, "Fixtures", "library.json"),
                 """
                 [
                   {
@@ -515,7 +515,7 @@ namespace Projecta.Tests
                   'ib2': $ib2
                 }
                 """,
-                "../../../../../jsonata-js/test/test-suite/datasets/library.json",
+                Path.Combine(AppContext.BaseDirectory, "Fixtures", "library.json"),
                 """
                 [
                   {
@@ -574,15 +574,9 @@ namespace Projecta.Tests
         [Test]
         public void Test_Eval()
         {
-            Check(
-                @"$eval('Quantity ~> $sum()')",
-                @"
-                    {
-                        'Quantity': 2
-                    }
-                ",
-                "2"
-            );
+            // Dynamic compilation is disabled by default and must never be implicitly enabled to satisfy a test.
+            Assert.Throws<Projecta.Execution.ExecutionLimitException>(() =>
+                new ProjectaQuery("$eval('Quantity ~> $sum()')").Eval("{\"Quantity\":2}"));
         }
 
         [Test]

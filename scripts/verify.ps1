@@ -26,7 +26,7 @@ try {
             if (Test-Path $path) { Remove-Item $path }
             Invoke-Dotnet test "tests/$project/$project.csproj" -c Release --no-build `
                 --logger "trx;LogFileName=$trx" --results-directory artifacts/validation `
-                --settings scripts/verify.runsettings
+                '--' RunConfiguration.TreatNoTestsAsError=true
             [xml]$result = Get-Content -LiteralPath $path -Raw
             $counters = $result.SelectSingleNode("//*[local-name()='Counters']")
             if ($null -eq $counters -or [int]$counters.executed -le 0 -or [int]$counters.failed -ne 0) {

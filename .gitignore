@@ -3,13 +3,11 @@
 .vs/
 .idea/
 TestResults/
-artifacts/validation/
-artifacts/packages/
+artifacts/
 
 *.user
 *.log
 *.tmp
 *.temp
 *.cache
-artifacts/consumer-cache/
 .tools/

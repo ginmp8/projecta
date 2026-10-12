@@ -12,9 +12,9 @@ Existing CLR getters, custom converters, domain factories, callbacks, regex engi
 
 ## Data minimization and diagnostics
 
-Generic sources exclude static/indexer/nonpublic getters, reject cycles/queryables/unknown runtime proxies and respect supported System.Text.Json metadata. Selective reading is an optimization for proven root dependencies, not a security boundary or universal getter policy. Explicit source adapters are needed for models with hidden lazy loading or side effects.
+Generic sources exclude static/indexer/nonpublic getters, reject cycles/queryables/unknown runtime proxies and respect supported System.Text.Json metadata. Selective reading is an optimization for proven literal paths, not a security boundary or universal getter policy. `AllowedRootMembers` is an explicit source-exposure filter (and works on array items); a custom adapter can still execute its own getters before its resulting root object is filtered. Host-level authorization remains mandatory. Explicit source adapters are needed for models with hidden lazy loading or side effects.
 
-Structured diagnostics omit raw inputs, expressions, exception messages and stacks. Rule IDs, field names, pointers and fingerprints are metadata, not guaranteed non-sensitive information. Direct throwing APIs may retain inner exceptions; do not log them indiscriminately. Telemetry installs no exporter and sends no network data. CLI stdout intentionally returns user-requested transformed data.
+Structured diagnostics omit raw inputs, expressions, exception messages and stacks. The programmatic comparison API reports JSON Pointers which can contain dynamically computed sensitive property names; do not log these pointers in multi-tenant environments. The CLI comparison always redacts these pointers. Rule IDs, field names, pointers and fingerprints are metadata, not guaranteed non-sensitive information. Direct throwing APIs may retain inner exceptions; do not log them indiscriminately. Telemetry installs no exporter and sends no network data. CLI stdout intentionally returns user-requested transformed data.
 
 ## Functions and contracts
 
@@ -32,4 +32,4 @@ Queryable translation rejects unsupported constructs and never silently switches
 
 ## Supply chain and release gates
 
-Central dependency versions, warnings-as-errors and inherited notices are preserved. No registry audit was successfully completed in the delivery environment; this is not a dependency-vulnerability clearance. Exact optional package restore, full integration tests, platform CI, application-specific hard isolation and operational review remain release gates. Retain an immutable known-good package and application tests before replacing a deployed version.
+Central dependency versions, warnings-as-errors and inherited notices are preserved. Exact declared optional packages and full configured Linux suites have been executed using a supplied offline dependency closure. Online NuGet vulnerability advisories were not checked; this is not a supply-chain clearance. Windows/macOS CI, application-specific hard isolation and operational review remain release gates. Retain an immutable known-good package and application tests before replacing a deployed version.
